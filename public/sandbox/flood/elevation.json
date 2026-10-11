@@ -1,0 +1,115 @@
+{
+  "version": "flood-0.1",
+  "generatedAt": "2026-10-11T07:30:06.013Z",
+  "purpose": "光明沙盘「积水模拟」的输入数据：真实海拔 + 洼地 + 汇流 + 河道。渲染端（WebGPU 计算着色器）按降雨强度往低处汇水、涨水、退水。",
+  "projection": {
+    "origin": [
+      113.929007,
+      22.76207
+    ],
+    "k": 0.9221194861972872,
+    "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+  },
+  "grid": {
+    "nx": 729,
+    "nz": 761,
+    "spacing": 30,
+    "x0": -10920,
+    "z0": -11400,
+    "xRange": [
+      -10920,
+      10920
+    ],
+    "zRange": [
+      -11400,
+      11400
+    ],
+    "order": "行优先（row-major），行 0 = 最北（z = z0），行内 i 沿 +x（东）；索引 k = j * nx + i",
+    "elevationSource": "public/sandbox/dem.bin（Int16 分米）× meta.dem.scale=0.1，**未做高程夸张**（渲染端 exaggerate() 只用于显示）",
+    "note": "DEM 覆盖范围是光明区界外扩约 2.3 km（x ±10920、z ±11400），比区界大，四周边界被当作出流口；因此边缘附近的汇水累积会被截断，越靠边越不可信。"
+  },
+  "layers": [
+    {
+      "id": "elevation",
+      "file": "elevation.bin",
+      "dtype": "float32",
+      "unit": "m",
+      "description": "真实海拔（米），未夸张",
+      "sha256": "c66d7d2eb3983b7b3fcccc6c7c206dc8ad7a47393b9d4e992a186daf44737478"
+    },
+    {
+      "id": "flow-accum",
+      "file": "flow-accum.bin",
+      "dtype": "float32",
+      "unit": "m²",
+      "description": "D8 汇水累积，Priority-Flood 填洼后计算；每格 = 该格上游汇水面积（米²），除以 900 就是格数",
+      "sha256": "1a0d2650bfc3188382c7bde6580781ce5308e89d37a1384687f3d705c732f5ca"
+    },
+    {
+      "id": "flow-accum-raw",
+      "file": "flow-accum-raw.bin",
+      "dtype": "float32",
+      "unit": "m²",
+      "description": "D8 汇水累积，原始 DEM（洼地未填）：水会在天然洼地停住，与上面那份的差值就是填洼的作用",
+      "sha256": "04b08c133750c560595cba4249b3da4c2711a827f53678286f7e1c2c757b9507"
+    },
+    {
+      "id": "depression-depth",
+      "file": "depression-depth.bin",
+      "dtype": "float32",
+      "unit": "m",
+      "description": "洼地深度 = 填平后高程 − 原始高程（≥0）；>0 的地方是天然积水点（水必须涨到该深度才能外流）",
+      "sha256": "813866b69358d8530e394bd3c3297bdca5bd2d696a6b70fe920be2c3e90ebdf2"
+    },
+    {
+      "id": "channels",
+      "file": "channels.bin",
+      "dtype": "uint8",
+      "unit": "class",
+      "description": "河道掩膜：1 = 天然河道/沟渠（半径 45 m≈2 格），2 = 人工输水管涵/隧洞（珠江三角洲水资源配置工程，不参与天然汇流），0 = 非河道",
+      "sha256": "58d0b14bc373e8611ad78dd6175424da5cf945cf6b35fd90b196fe7125cc6557"
+    }
+  ],
+  "stats": {
+    "cells": 554769,
+    "seaCells": 5737,
+    "depressionCells": 70641,
+    "depressionAreaKm2": 63.5769,
+    "depressionVolumeM3": 133830067.59590507,
+    "maxDepressionDepthM": 33.50299835205078,
+    "rawSinkCells": 10165,
+    "filledSinkCells": 208,
+    "channelCells": 8378,
+    "channelAreaKm2": 7.5402,
+    "tunnelCells": 3919,
+    "elevationRange": [
+      -29.200000762939453,
+      464
+    ]
+  },
+  "channelNames": {
+    "natural": [
+      "茅洲河",
+      "合水口河",
+      "玉田河",
+      "松岗河",
+      "鹅颈水",
+      "新陂头河",
+      "大凼水",
+      "楼村水",
+      "楼村水北支",
+      "无名圳"
+    ],
+    "tunnel": [
+      "珠江三角洲水资源配置工程输水管涵深圳分干线",
+      "珠三角水资源配置工程罗田水库-铁岗水库输水隧洞"
+    ],
+    "source": "public/sandbox/sandbox.json 的 water.lines（现成的沙盘数据，已投影到同一套本地米制坐标）；命名规则里有「输水/隧洞/管涵/干渠/管道」的归为人工管涵"
+  },
+  "algorithm": {
+    "depressionFilling": "Priority-Flood（Barnes et al. 2014）：把边界格和水域格当出流口压进最小堆，按高程从低到高漫过全网格，把洼地抬到溢流高程（+1e-3 m 保证严格下坡）",
+    "flowDirection": "D8：每格指向 8 邻域里坡度（落差/距离）最大的那个，无下坡邻居则为出口（原始 DEM 的天然洼地）",
+    "accumulation": "按高程降序把每格的累积（初始 1 格）加到它的下游格",
+    "reference": "scripts/sandbox/build-watershed.mjs 用的是同一套算法（60 m 网格、面向茅洲河流域），本文件跑在沙盘原生 30 m 网格上"
+  }
+}

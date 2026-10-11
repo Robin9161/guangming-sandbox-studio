@@ -8,6 +8,7 @@ import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRe
 import { createAtmosphere, createGrade, glowColor, glowFromVertexColor } from "./atmosphere";
 import { createVolumeFog } from "./volumeFog";
 import { upgradeWater } from "./waterGpu";
+import { createFloodSim } from "./floodSim";
 import { buildBuildings } from "./buildings";
 import { buildClouds, buildTrees } from "./decor";
 import { buildBoundaryLine, buildExpressways, buildRoads, buildWater, expresswayGrowth, roadGrowth } from "./features";
@@ -389,7 +390,7 @@ const express = isGM
     if (target) goTo(poiNames.has(name) ? viewPose(target, 900, 32, 30) : viewPose(target, 3600, 36, 24));
   };
   goTo(poses.miniature(), true);
-  if (process.env.NODE_ENV !== "production") (window as unknown as { __sandbox: unknown }).__sandbox = { scene, camera, controls, metro: metroSystem, terrain, story: () => story, watershed: () => watershedView, renderer, gpu: () => ({ waterGpu, volumeFog, pipeline, gtao }) };
+  if (process.env.NODE_ENV !== "production") (window as unknown as { __sandbox: unknown }).__sandbox = { scene, camera, controls, metro: metroSystem, terrain, story: () => story, watershed: () => watershedView, renderer, gpu: () => ({ waterGpu, volumeFog, pipeline, gtao, flood: () => flood }) };
 
   // ---------- 后处理（节点链，等价于原来的 GTAO → 移轴 → 泛光 → 暗角 → 全局调色 → 输出） ----------
   const pipeline = new THREE.RenderPipeline(renderer);
@@ -723,7 +724,17 @@ const express = isGM
   let animTime = 0;
   let animTimer = 0;
   let windTimer = 0;
+  // 积水模拟：第一次讲到「水也从这里来」才加载数据
+  let flood: Awaited<ReturnType<typeof createFloodSim>> | null = null;
+  let floodLoading: Promise<void> | null = null;
+  const startFlood = () => {
+    if (flood) { flood.start(); return; }
+    floodLoading ??= createFloodSim(scene, renderer, terrain).then((sim) => { flood = sim; if (activeAnimName === "flood") sim.start(); }).catch((error) => console.warn("flood sim failed", error));
+  };
+  let activeAnimName: string | null = null;
   const stopAnim = () => {
+    flood?.stop();
+    activeAnimName = null;
     // 风吹雾只属于「风从口子进来」这一拍：离开时风停、不再强制起雾
     window.clearTimeout(windTimer);
     volumeFog.setWind(false);
@@ -740,6 +751,13 @@ const express = isGM
     animTime = 0;
     animTimer = 1;
     activeAnim.seek(0);
+    activeAnimName = name;
+    // 积水：按 2019-05-23 光明实测的逐小时雨量下雨，雨水顺地形往低处汇集、涨水、再慢慢退去
+    if (name === "flood" && isGM) {
+      startFlood();
+      // 积水由模拟画；原来那张平面示意图只保留文字，不再铺蓝色色块
+      (activeAnim as unknown as { paint?: unknown }).paint = undefined;
+    }
     if (name === "wind") {
       // 先让盆地被雾盖住，约 2.5 秒后西南风从西边山口吹进来，沿河谷把雾吹开，露出风廊上的城区
       volumeFog.forceFog(6);
@@ -1274,6 +1292,7 @@ const express = isGM
     for (const label of landmarkLabels) label.visible = labelsOn && stationFocus.size === 0 && !quietLabels;
     atmosphere.followCamera(camera.position);
     waterGpu.update(controls.target);
+    flood?.update();
     {
       const fl = atmosphere.fogLight();
       volumeFog.update(controls.target, distance, Math.max(terrain.extent.maxX - terrain.extent.minX, terrain.extent.maxZ - terrain.extent.minZ) * 0.6,
