@@ -30,7 +30,7 @@ export const weatherState = {
 
 /** 各天气的目标强度和自动模式下出现的权重 */
 const TARGET: Record<Exclude<WeatherKind, "clear">, number> = { cloudy: 0.8, rain: 0.8, storm: 0.97, fog: 0.85, snow: 0.85 };
-const AUTO_WEIGHTS: [Exclude<WeatherKind, "clear">, number][] = [["cloudy", 0.35], ["rain", 0.25], ["storm", 0.12], ["fog", 0.16], ["snow", 0.12]];
+const AUTO_WEIGHTS: [Exclude<WeatherKind, "clear">, number][] = [["cloudy", 0.35], ["rain", 0.25], ["storm", 0.12], ["snow", 0.12]];
 const RAMP_SECONDS = 30;
 const MANUAL_LOCK = 240;
 

@@ -262,7 +262,9 @@ export function createAtmosphere(refs: Refs) {
     // 雨雪天空气湿，山谷水边起雾；日出日落有一层薄霭；正午马卡龙时几乎没有
     const wetAir = weatherState.kind === "rain" || weatherState.kind === "storm" || weatherState.kind === "snow" ? weatherState.level : 0;
     const mist = (0.06 + 0.22 * look.glow) * (1 - macaron) * (1 - look.night * 0.5);
-    gfU.uGFAmount.value = Math.max(morning * 0.75, weatherFog, mist + 0.45 * wetAir);
+    // 雾平时不出现（画面会脏）：只在讲解演示风（volumeFog.forceFog）或手动选「雾」天气时才有
+    void mist; void wetAir;
+    gfU.uGFAmount.value = weatherFog;
     gfU.uGFHeight.value = THREE.MathUtils.lerp(55, 170, Math.max(weatherFog, wetAir * 0.6));
     fogLight.morning = morning;
     gfU.uGFColor.value.copy(k.fog).lerp(k.horizon, 0.5).multiplyScalar(1.1);
