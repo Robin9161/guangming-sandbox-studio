@@ -1,0 +1,255 @@
+{
+ "meta": {
+  "generatedAt": "2026-10-11T07:52:16.672Z",
+  "purpose": "光明沙盘 WebGPU 讲解动画「茅洲河从污染到变清」的水质时间线（断面类别 + 治理节点）",
+  "projection": {
+   "origin": [
+    113.929007,
+    22.76207
+   ],
+   "k": 0.9221194861972872,
+   "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+  },
+  "focusSection": {
+   "name": "茅洲河共和村（国考断面）",
+   "note": "共和村是茅洲河的国考断面，位于下游（宝安一侧江段），是判断整条河（含光明上游）水质的官方考核点；月报里分（左）（右）两岸两个测点。",
+   "target": "控制目标：地表水Ⅳ类（《广东省碧水保卫战五年行动计划（2021-2025年）》等）",
+   "coordsHint": "断面不在光明区界内，动画里建议只用它的类别数值，不要在地图上标点"
+  },
+  "otherSection": {
+   "name": "茅洲河洋涌大桥",
+   "note": "同在深圳市重点整治河流名单里的另一个茅洲河测点（下游）"
+  },
+  "gmReach": {
+   "lengthKm": 14.8,
+   "firstOrderTributaries": 13,
+   "basinAreaKm2": 145.9,
+   "shareOfWholeBasin": 0.373,
+   "wholeBasinKm2": 388,
+   "source": {
+    "title": "市民代表见证深圳光明水环境“蝶变”（深圳晚报，2020-10-26）",
+    "url": "https://wb.sznews.com/attachment/pdf/202010/26/0cf95047-75b1-43b2-8c77-0ec349e0e166.pdf"
+   },
+   "confidence": "high（深圳晚报引光明区官方活动口径）",
+   "note": "沙盘里按 OSM 河道折线量出的茅洲河光明段干流约 12.6 km（见 river-flow.json），与官方 14.8 km 的差别来自统计口径（是否含上下游接壤段、河道中心线简化）。"
+  },
+  "caveats": [
+   "官方月报只发布 2023 年 6 月以来的网页版；更早的逐年断面类别数字化数据**未找到**（2010–2018 只有定性描述：2016 年中央环保督察指出「水质污染严重」）。",
+   "共和村断面分左/右岸两个测点，同一月份两者可能差 2–3 个类别（例：2023-10 左岸劣Ⅴ、右岸Ⅳ）。",
+   "2003 年月报用「退潮」字样，说明该断面受潮汐影响。"
+  ],
+  "sources": [
+   {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   {
+    "title": "市民代表见证深圳光明水环境“蝶变”（深圳晚报，2020-10-26）",
+    "url": "https://wb.sznews.com/attachment/pdf/202010/26/0cf95047-75b1-43b2-8c77-0ec349e0e166.pdf"
+   },
+   {
+    "title": "深圳市宝安区水务局关于区七届人大三次会议第20232380号建议的答复函",
+    "url": "https://www.baoan.gov.cn/xxgk/wgkzl/jggk/srdjydf/content/post_10945786.html"
+   },
+   {
+    "title": "从“典型”到“典范” 茅洲河背后的宝安治水之道（宝安区政府）",
+    "url": "http://www.baoan.gov.cn/bahbswj/gkmlpt/content/10/10530/post_10530832.html"
+   },
+   {
+    "title": "从“黑臭河”到“生态河”——广东茅洲河治理观察（新华社，2022-07）",
+    "url": "http://dangjian.cn/gddt2022/2022/07/25/detail_202207256435513.html"
+   },
+   {
+    "title": "光明区水务局防汛应急预案（2022 年修订版）",
+    "url": "http://www.szgm.gov.cn/gmhbsw/attachment/1/1188/1188379/9841460.pdf"
+   }
+  ]
+ },
+ "sections": [
+  {
+   "id": "gonghe-left",
+   "name": "茅洲河共和村（左）",
+   "kind": "national-assessment-section"
+  },
+  {
+   "id": "gonghe-right",
+   "name": "茅洲河共和村（右）",
+   "kind": "national-assessment-section"
+  },
+  {
+   "id": "yangyong-bridge",
+   "name": "茅洲河洋涌大桥",
+   "kind": "key-river-section"
+  }
+ ],
+ "classes": [
+  {
+   "date": "2019-10",
+   "period": "2019 年 10 月底",
+   "gonghe-left": null,
+   "gonghe-right": null,
+   "yangyong-bridge": null,
+   "milestone": "共和村国考断面自 1992 年以来首次达到地表水Ⅴ类；全区（宝安）66 条河流全部消除黑臭",
+   "source": {
+    "title": "深圳市宝安区水务局关于区七届人大三次会议第20232380号建议的答复函",
+    "url": "https://www.baoan.gov.cn/xxgk/wgkzl/jggk/srdjydf/content/post_10945786.html"
+   },
+   "confidence": "high（宝安区水务局答复函原文）"
+  },
+  {
+   "date": "2022",
+   "period": "2022 年",
+   "gonghe-left": null,
+   "gonghe-right": null,
+   "yangyong-bridge": null,
+   "milestone": "茅洲河共和村国考断面水质稳定达地表水Ⅳ类；宝安 66 条河流全部达Ⅴ类，其中 106.2 km 达Ⅲ类及以上",
+   "source": {
+    "title": "从“典型”到“典范” 茅洲河背后的宝安治水之道（宝安区政府）",
+    "url": "http://www.baoan.gov.cn/bahbswj/gkmlpt/content/10/10530/post_10530832.html"
+   },
+   "confidence": "high（宝安区政府原文）"
+  },
+  {
+   "date": "2023-06",
+   "period": "2023 年 6 月",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high（市生态环境局月报）",
+   "note": "该月页面抽取到的评价句被目标值段落覆盖，类别未取到 → 未找到"
+  },
+  {
+   "date": "2023-10",
+   "period": "2023 年 10 月",
+   "gonghe-left": "劣Ⅴ类",
+   "gonghe-right": "Ⅳ类",
+   "yangyong-bridge": "Ⅳ类",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high（市生态环境局月报原文）"
+  },
+  {
+   "date": "2024-01",
+   "period": "2024 年 1 月",
+   "gonghe-left": "Ⅲ类",
+   "gonghe-right": "Ⅲ类",
+   "yangyong-bridge": "Ⅲ类",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high（市生态环境局月报原文）"
+  },
+  {
+   "date": "2024-06",
+   "period": "2024 年 6 月",
+   "gonghe-left": "Ⅴ类",
+   "gonghe-right": "Ⅴ类",
+   "yangyong-bridge": "Ⅲ类",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high（市生态环境局月报原文）"
+  },
+  {
+   "date": "2025-01",
+   "period": "2025 年 1 月",
+   "gonghe-left": "Ⅳ类",
+   "gonghe-right": "Ⅳ类",
+   "yangyong-bridge": "Ⅳ类",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high（市生态环境局月报原文）"
+  }
+ ],
+ "milestones": [
+  {
+   "year": 2015,
+   "title": "污染最重的时候",
+   "detail": "茅洲河流域深圳一侧涉水污染源企业多达 3.87 万家；沿岸排污口密布，偷排、漏排、超排屡禁不止。宝安把全区划成茅洲河、大空港、前海、铁石四大战区，走“高强度持续投入、全流域系统治理、大兵团联合作战”“地方政府+大型央企”EPC 模式。",
+   "source": {
+    "title": "深圳市宝安区水务局关于区七届人大三次会议第20232380号建议的答复函",
+    "url": "https://www.baoan.gov.cn/xxgk/wgkzl/jggk/srdjydf/content/post_10945786.html"
+   },
+   "confidence": "high"
+  },
+  {
+   "year": 2016,
+   "title": "被中央环保督察点名，攻坚战全面打响",
+   "detail": "中央第四环境保护督察组督察广东，指出茅洲河整治工作落实不力、大量污水直排、水质污染严重；同年宝安打响水污染治理攻坚战，光明区也全面打响水污染防治攻坚战。",
+   "source": {
+    "title": "从“黑臭河”到“生态河”——广东茅洲河治理观察（新华社，2022-07）",
+    "url": "http://dangjian.cn/gddt2022/2022/07/25/detail_202207256435513.html"
+   },
+   "extraSources": [
+    {
+     "title": "市民代表见证深圳光明水环境“蝶变”（深圳晚报，2020-10-26）",
+     "url": "https://wb.sznews.com/attachment/pdf/202010/26/0cf95047-75b1-43b2-8c77-0ec349e0e166.pdf"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "year": 2019,
+   "title": "消除黑臭，断面首次达Ⅴ类",
+   "detail": "2019 年 10 月底，宝安 66 条河流全部消除黑臭，茅洲河共和村国考断面自 1992 年以来首次达到地表水Ⅴ类；**茅洲河干流（光明段）及一级以上支流全面消除劣Ⅴ类，水质全部达到Ⅴ类或以上**。",
+   "source": {
+    "title": "深圳市宝安区水务局关于区七届人大三次会议第20232380号建议的答复函",
+    "url": "https://www.baoan.gov.cn/xxgk/wgkzl/jggk/srdjydf/content/post_10945786.html"
+   },
+   "extraSources": [
+    {
+     "title": "市民代表见证深圳光明水环境“蝶变”（深圳晚报，2020-10-26）",
+     "url": "https://wb.sznews.com/attachment/pdf/202010/26/0cf95047-75b1-43b2-8c77-0ec349e0e166.pdf"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "year": 2020,
+   "title": "光明区全面消除黑臭水体治理工程",
+   "detail": "楼村湿地公园等项目作为两大重点攻坚任务；光明区在全市率先完成 148 个小微黑臭水体的销号验收。",
+   "source": {
+    "title": "市民代表见证深圳光明水环境“蝶变”（深圳晚报，2020-10-26）",
+    "url": "https://wb.sznews.com/attachment/pdf/202010/26/0cf95047-75b1-43b2-8c77-0ec349e0e166.pdf"
+   },
+   "confidence": "high"
+  },
+  {
+   "year": 2022,
+   "title": "国考断面稳定Ⅳ类",
+   "detail": "茅洲河共和村国考断面水质稳定达地表水Ⅳ类；宝安 66 条河流水质全部达到Ⅴ类标准，106.2 km 河流达Ⅲ类及以上（2019 年优良河长仅 15.57 km、占 6.5%）。",
+   "source": {
+    "title": "从“典型”到“典范” 茅洲河背后的宝安治水之道（宝安区政府）",
+    "url": "http://www.baoan.gov.cn/bahbswj/gkmlpt/content/10/10530/post_10530832.html"
+   },
+   "extraSources": [
+    {
+     "title": "深圳市宝安区水务局关于区七届人大三次会议第20232380号建议的答复函",
+     "url": "https://www.baoan.gov.cn/xxgk/wgkzl/jggk/srdjydf/content/post_10945786.html"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "year": "2023-2025",
+   "title": "月度考核波动在Ⅲ–Ⅴ类之间",
+   "detail": "官方月报显示共和村（左/右）、洋涌大桥在Ⅲ类到Ⅴ类之间波动（例：2024-01 三个测点全Ⅲ类；2024-06 共和村两侧回落到Ⅴ类）。",
+   "source": {
+    "title": "深圳市重点河流水质状况（深圳市生态环境局月报）",
+    "url": "http://meeb.sz.gov.cn/ztfw/zdlyxxgk/shjyb/"
+   },
+   "confidence": "high"
+  }
+ ],
+ "notFound": [
+  "2010–2018 年逐年（或逐月）的共和村断面水质类别数字化数据 —— 未找到；这一段只能用 2016 年中央环保督察的定性结论（“水质污染严重、大量污水直排”）。",
+  "光明区自己设立的断面（如茅洲河光明段内部断面）的逐年类别 —— 未找到。"
+ ]
+}

@@ -1,0 +1,324 @@
+{
+ "meta": {
+  "generatedAt": "2026-10-11T07:52:16.673Z",
+  "purpose": "光明沙盘 WebGPU 讲解动画「人口迁移」用的三波迁入人群、路线与落点",
+  "projection": {
+   "origin": [
+    113.929007,
+    22.76207
+   ],
+   "k": 0.9221194861972872,
+   "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+  },
+  "caveats": [
+   "1980、1990 两年的深圳市/光明（当时属宝安县、宝安区）常住人口**未找到**权威单年数字：深圳的连续序列只查到 1979 年 31.41 万、2000 年 701.24 万、2009 年 995.01 万、2011 年 1046.74 万、2019 年 1343.88 万（南方都市报）；广州/深圳统计年鉴 PDF 本次抓取被 403 拒绝。",
+   "2020 年全市常住人口 1,755 万是**推算值**：七普光明区 109.53 万人、占全市 6.24%（光明区七普解读原文）→ 109.53 ÷ 0.0624 ≈ 1755 万，与公开的 1756.01 万一致。",
+   "客家人迁入的部分：只有楼村一支有连续的族谱链条（江西虔州石城 → 公明水贝/今下村 → 楼村，明正统年间）；其余老村的迁入来源见 story-places.json 各自的 source 字段，本文件只引用不重写。",
+   "改革开放后的外来人口：官方口径是“流动人口”，没有按来源省的分类数据 —— 来源地方向未找到，只能给总量与人数量级。"
+  ],
+  "sources": [
+   {
+    "title": "深圳市光明区第七次全国人口普查公报（第二号）",
+    "url": "http://www.szgm.gov.cn/gmfzhcz/attachment/0/798/798726/8901114.pdf"
+   },
+   {
+    "title": "光明区第七次全国人口普查主要数据解读",
+    "url": "http://www.szgm.gov.cn/gmfzhcz/gkmlpt/content/8/8901/post_8901414.html"
+   },
+   {
+    "title": "在改革开放中奔向光明（新时代·新侨乡）（人民日报海外版，2018-12-03）",
+    "url": "http://paper.people.com.cn/rmrbhwb/html/2018-12/03/content_1896384.htm"
+   },
+   {
+    "title": "光明（深圳百科·地名志）",
+    "url": "http://szbaike.com/humanity/place-name/2022-12-30/3667.html"
+   },
+   {
+    "title": "寻找600年历史村落红色记忆（深圳侨报，2021-09-18）",
+    "url": "http://sz-qb.com/PC/content/202109/18/content_47755.html"
+   },
+   {
+    "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+    "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+   }
+  ]
+ },
+ "waves": [
+  {
+   "id": "hakka",
+   "name": "客家人迁入（宋—明）",
+   "period": "北宋末年至明代（约 11—16 世纪）",
+   "from": "粤东/粤北与赣南、闽西方向（深圳“滨海客家”研究的通行结论）",
+   "to": "光明境内的老村落，如楼村、玉律、合水口、迳口、东坑、白花、凤凰村",
+   "route": "楼村一支有明确族谱：陈氏先祖陈敏为**虔州石城（今江西省赣州市石城县）**人 → 三子迁居**公明水贝村（今下村）** → 明正统年间（1436—1449）水贝陈氏一支迁居**楼村**，迄今 600 多年",
+   "scale": "未找到确切人数；只能给“村落世代”量级（楼村 600 余年、玉律为光明有文献记载最早的村落之一）",
+   "landingPoints": [
+    {
+     "storyPlaceId": "village-loucun",
+     "name": "楼村",
+     "x": -460.1,
+     "z": -2447.4,
+     "lng": 113.924525,
+     "lat": 22.784054,
+     "note": "楼村：陈氏明正统年间由公明水贝（今下村）迁入",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    },
+    {
+     "storyPlaceId": "village-yulu",
+     "name": "玉律",
+     "x": -3959.6,
+     "z": 4571.5,
+     "lng": 113.890433,
+     "lat": 22.720997,
+     "note": "玉律：莫氏北宋末年立村，明嘉靖年间（约 1543）曾氏迁入开基",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    },
+    {
+     "storyPlaceId": "village-heshuikou",
+     "name": "合水口",
+     "x": -5260.8,
+     "z": -2682,
+     "lng": 113.877757,
+     "lat": 22.786161,
+     "note": "合水口：与公明墟、麦氏大宗祠同处一片老村带",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    },
+    {
+     "storyPlaceId": "village-jingkou",
+     "name": "迳口",
+     "x": 3646.7,
+     "z": -683.3,
+     "lng": 113.964533,
+     "lat": 22.768208,
+     "note": "迳口：黄氏大宗祠所在老村",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    }
+   ],
+   "sourceUrls": [
+    {
+     "title": "寻找600年历史村落红色记忆（深圳侨报，2021-09-18）",
+     "url": "http://sz-qb.com/PC/content/202109/18/content_47755.html"
+    },
+    "public/sandbox/story/story-places.json"
+   ],
+   "confidence": "medium（楼村一条 high：族谱 + 官方媒体；其余为地方志/报道口径）"
+  },
+  {
+   "id": "returnees",
+   "name": "归国华侨（1950s—1987、1978—1979 两批）",
+   "period": "20 世纪 50 年代—1987 年；其中 1978—1979 年为大批越南归侨",
+   "from": "印度尼西亚、马来西亚、越南、缅甸、泰国等东南亚国家（1978—1979 年以越南为主）",
+   "to": "广东省国营光明农场（1979 年 1 月更名「广东省光明华侨畜牧场」，今光明街道一带）",
+   "route": "1978—1979 年越南华侨被迫回国 → 国家统一安置到多个国营农场 → 其中 4,000 多人（另一说 4,300 多名）到光明",
+   "scale": "1950s—1987 年累计来自印尼/马来/越南/缅甸/泰国的回国华侨 **163 人**；1978—1979 年 **4,300 多名**越南归侨；归侨、侨眷占光明户籍人口 **25.8%**",
+   "landingPoints": [
+    {
+     "storyPlaceId": "farm-hq",
+     "name": "光明农场场部旧址（今光明街道）",
+     "x": 819.7,
+     "z": -530.8,
+     "note": "归侨安置地；后来的同富裕安居房也在这一片"
+    }
+   ],
+   "sourceUrls": [
+    {
+     "title": "在改革开放中奔向光明（新时代·新侨乡）（人民日报海外版，2018-12-03）",
+     "url": "http://paper.people.com.cn/rmrbhwb/html/2018-12/03/content_1896384.htm"
+    },
+    {
+     "title": "光明（深圳百科·地名志）",
+     "url": "http://szbaike.com/humanity/place-name/2022-12-30/3667.html"
+    }
+   ],
+   "confidence": "high（人民日报海外版 + 深圳百科地名志；两处人数口径略有差异已并列）"
+  },
+  {
+   "id": "migrant-workers",
+   "name": "改革开放后的外来务工与流动人口（1980s—今）",
+   "period": "1980 年代至今",
+   "from": "来源地方向 —— 未找到官方分类数据（只有“流动人口”总量）",
+   "to": "光明区的产业园区与城中村（华星光电等厂区、各街道城中村）",
+   "route": "深圳全域的“人口大迁移”：1979 年常住 31.41 万 → 2019 年 1343.88 万（约 42 倍）；光明区 2010 年 48.09 万 → 2020 年 109.53 万（增长 127.75%，年均 8.58%）",
+   "scale": "光明区 2020 年常住人口 109.53 万，其中**流动人口 95.22 万**（比 2010 年增加 52.21 万）；男 58.55% / 女 41.45%",
+   "populationSeries": [
+    {
+     "year": 1979,
+     "scope": "深圳市",
+     "value": "31.41 万人",
+     "source": {
+      "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+      "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+     },
+     "confidence": "high"
+    },
+    {
+     "year": 1980,
+     "scope": "深圳市",
+     "value": "未找到",
+     "source": null,
+     "confidence": "—"
+    },
+    {
+     "year": 1990,
+     "scope": "深圳市",
+     "value": "未找到",
+     "source": null,
+     "confidence": "—"
+    },
+    {
+     "year": 2000,
+     "scope": "深圳市",
+     "value": "701.24 万人",
+     "source": {
+      "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+      "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+     },
+     "confidence": "high"
+    },
+    {
+     "year": 2009,
+     "scope": "深圳市",
+     "value": "995.01 万人",
+     "source": {
+      "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+      "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+     },
+     "confidence": "high"
+    },
+    {
+     "year": 2010,
+     "scope": "光明区（时称光明新区）",
+     "value": "48.09 万人",
+     "source": {
+      "title": "光明区第七次全国人口普查主要数据解读",
+      "url": "http://www.szgm.gov.cn/gmfzhcz/gkmlpt/content/8/8901/post_8901414.html"
+     },
+     "confidence": "high（七普解读对比 2010 六普）"
+    },
+    {
+     "year": 2019,
+     "scope": "深圳市",
+     "value": "1343.88 万人",
+     "source": {
+      "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+      "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+     },
+     "confidence": "high"
+    },
+    {
+     "year": 2020,
+     "scope": "光明区",
+     "value": "109.53 万人",
+     "source": {
+      "title": "深圳市光明区第七次全国人口普查公报（第二号）",
+      "url": "http://www.szgm.gov.cn/gmfzhcz/attachment/0/798/798726/8901114.pdf"
+     },
+     "confidence": "high（七普第二号）"
+    },
+    {
+     "year": 2020,
+     "scope": "深圳市",
+     "value": "约 1755 万人（按光明占比 6.24% 推算，公开值 1756.01 万）",
+     "source": {
+      "title": "光明区第七次全国人口普查主要数据解读",
+      "url": "http://www.szgm.gov.cn/gmfzhcz/gkmlpt/content/8/8901/post_8901414.html"
+     },
+     "confidence": "medium（推算）"
+    }
+   ],
+   "subdistricts2020": [
+    {
+     "name": "马田街道",
+     "population": 295584,
+     "share2020": 26.99,
+     "share2010": 28.45,
+     "growth": 158785
+    },
+    {
+     "name": "玉塘街道",
+     "population": 211591,
+     "share2020": 19.32,
+     "share2010": 19.94,
+     "growth": 115675
+    },
+    {
+     "name": "公明街道",
+     "population": 200014,
+     "share2020": 18.26,
+     "share2010": 23.38,
+     "growth": 87590
+    },
+    {
+     "name": "凤凰街道",
+     "population": 153931,
+     "share2020": 14.05,
+     "share2010": 9.7,
+     "growth": 107285
+    },
+    {
+     "name": "新湖街道",
+     "population": 123589,
+     "share2020": 11.28,
+     "share2010": 10.78,
+     "growth": 71730
+    },
+    {
+     "name": "光明街道",
+     "population": 110580,
+     "share2020": 10.1,
+     "share2010": 7.75,
+     "growth": 73317
+    }
+   ],
+   "landingPoints": [
+    {
+     "storyPlaceId": "factory-hs",
+     "name": "华星光电 T1 厂区（中心点）",
+     "x": -1295.4,
+     "z": 2146.5,
+     "note": "大型产业园区，务工人口的主要就业落点之一"
+    },
+    {
+     "storyPlaceId": "market-gongming",
+     "name": "公明墟",
+     "x": -4891.4,
+     "z": -2836.8,
+     "lng": 113.881356,
+     "lat": 22.787551,
+     "note": "公明墟：老镇中心，周边城中村是外来人口最早聚居的地方",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    },
+    {
+     "storyPlaceId": "village-heshuikou",
+     "name": "合水口",
+     "x": -5260.8,
+     "z": -2682,
+     "lng": 113.877757,
+     "lat": 22.786161,
+     "note": "合水口：老村 + 城中村形态，外来人口密集",
+     "coordinateSource": "public/sandbox/story/story-places.json（老村落坐标，来源见 reports/story-data/README.md）"
+    }
+   ],
+   "sourceUrls": [
+    {
+     "title": "深圳市光明区第七次全国人口普查公报（第二号）",
+     "url": "http://www.szgm.gov.cn/gmfzhcz/attachment/0/798/798726/8901114.pdf"
+    },
+    {
+     "title": "光明区第七次全国人口普查主要数据解读",
+     "url": "http://www.szgm.gov.cn/gmfzhcz/gkmlpt/content/8/8901/post_8901414.html"
+    },
+    {
+     "title": "深圳40年人口红利分析：人口增长42倍（南方都市报）",
+     "url": "https://finance.southcn.com/node_bd56cdafac/9e65a8bbda.shtml"
+    }
+   ],
+   "confidence": "high（普查与官方口径）；来源省分类未找到"
+  }
+ ],
+ "notFound": [
+  "1980 年、1990 年深圳市（以及当时的宝安县/光明农场）常住人口单年数字 —— 未找到可引用的权威来源。",
+  "改革开放后光明外来人口按来源省/来源地的分布 —— 未找到。",
+  "1979 年之前光明农场的原住居民（7 个自然村）人口数 —— 未找到。"
+ ]
+}

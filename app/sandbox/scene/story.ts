@@ -21,6 +21,8 @@ type Feature = { geometry: { type: string; coordinates: unknown }; properties: R
  */
 export type BuildingStage = "none" | "west-grow" | "west" | "avenue-grow";
 
+type RoadCaptionSpec = { road: "longda" | "nanguang" | "avenue"; name: string; from: string; to: string };
+
 export type StoryStep = {
   id: string;
   title: string;
@@ -53,7 +55,8 @@ export type StoryStep = {
   };
   hidden?: { expressways?: ("longda" | "nanguang")[] };
   /** 路名沿路浮现：起点地名先出现，路长到哪里路名的字就出现到哪里，到头浮现下一个地名 */
-  roadCaption?: { road: "longda" | "nanguang" | "avenue"; name: string; from: string; to: string };
+  /** 路名沿路浮现；可以同时给几条路 */
+  roadCaption?: RoadCaptionSpec | RoadCaptionSpec[];
   /** 这一拍的地铁站名：全景下也显示，列车到站时点亮 */
   stationFocus?: string[];
   /** 这一拍切到茅洲河流域视图并播放水库时间线（scene/watershed.ts），镜头由时间线控制 */
@@ -202,6 +205,8 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
   const farmView = fit([[-1500, -5500], [5500, -5500], [5500, 4500], [-1500, 4500]], 22000, 60);
   const longdaView = roadView(growth.expresswayPaths.longda);
   const nanguangView = roadView(growth.expresswayPaths.nanguang);
+  // 两条高速一起讲：镜头把两条都框进来
+  const bothView = fit([...growth.expresswayPaths.longda, ...growth.expresswayPaths.nanguang], 22000, 58);
   // 光明大道：比两条高速的全景稍近一点
   const avenueFit = fit(growth.avenue, 12000, 52);
   const avenueView = { ...avenueFit, distance: avenueFit.distance * 1.2 };
@@ -401,36 +406,25 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
     },
     // ===================== 第三幕 · 路到哪里，城长到哪里 =====================
     {
-      id: "longda", act: "第三幕 · 路到哪里，城长到哪里", title: "3-1 · 龙大高速（2005）",
-      question: "第一条从外面接进来的路是哪条？",
-      body: "第一条接进来的，是龙大高速。它从龙华出发，斜着穿过光明的东侧，一路往北，到东莞大岭山。深圳段 2005 年通车，在光明设了出入口，接上城里的光明大道和观光路。",
-      source: "已核实：维基百科·龙大高速；深圳政府在线",
+      id: "expressways", act: "第三幕 · 路到哪里，城长到哪里", title: "3-1 · 两条高速（2005 / 2008）",
+      question: "光明是怎么和外面连上的？",
+      body: "先接进来的是两条高速。东边是龙大高速，从龙华出发，斜穿光明东侧，一路往北到东莞大岭山，2005 年通车。西边是南光高速，从南山西丽出发，穿过石岩进入光明，沿西边到宝安松岗，2008 年通车，在光明境内大约四成是高架。一东一西，光明从此和龙华、南山都连上了。",
+      source: "已核实：维基百科·龙大高速；深圳政府在线；百度百科·南光高速；本项目计算：OSM 桥梁占比",
       layers: { ...OLD_TOWN, expressways: true },
       paint: null,
-      camera: longdaView,
+      camera: bothView,
       labels: [],
       buildings: "west",
-      motion: breathe(longdaView.distance, 13, 0.97),
-      grow: { expressways: { longda: 11 } },
-      hidden: { expressways: ["nanguang"] },
-      roadCaption: { road: "longda", name: "龙大高速", from: "龙华", to: "东莞大岭山" },
+      motion: breathe(bothView.distance, 13, 0.97),
+      // 龙大、南光同时生长，节奏更快
+      grow: { expressways: { longda: 11, nanguang: 11 } },
+      roadCaption: [
+        { road: "longda", name: "龙大高速", from: "龙华", to: "东莞大岭山" },
+        { road: "nanguang", name: "南光高速", from: "南山西丽", to: "宝安松岗" },
+      ],
     },
     {
-      id: "nanguang", act: "第三幕 · 路到哪里，城长到哪里", title: "3-2 · 南光高速（2008）",
-      question: "光明和南山是怎么连上的？",
-      body: "三年后，2008 年，南光高速通车。它从南山西丽出发，往北穿过石岩进入光明，沿着西边一直到宝安松岗，全长 31 公里。光明去南山，从此有了一条直通的高速；它在光明境内大约四成是高架。",
-      source: "已核实：百度百科·南光高速；本项目计算：OSM 桥梁占比",
-      layers: { ...OLD_TOWN, expressways: true },
-      paint: null,
-      camera: nanguangView,
-      labels: [],
-      buildings: "west",
-      motion: breathe(nanguangView.distance, 13, 0.97),
-      grow: { expressways: { nanguang: 11 } },
-      roadCaption: { road: "nanguang", name: "南光高速", from: "南山西丽", to: "宝安松岗" },
-    },
-    {
-      id: "avenue", act: "第三幕 · 路到哪里，城长到哪里", title: "3-3 · 光明大道",
+      id: "avenue", act: "第三幕 · 路到哪里，城长到哪里", title: "3-2 · 光明大道",
       question: "两条高速之间，城市是怎么长起来的？",
       body: "两条高速，一条在西，一条在东。把它们连起来的，是光明大道：西头接南光，东头接上龙大的出入口。路通到哪里，房子就长到哪里。顺着光明大道，东岸的厂房、小区和学校，一片一片长了出来。",
       source: "已核实：龙大高速出入口接光明大道（维基百科·龙大高速）。光明大道建成年份待核实；生长顺序为示意，不代表建成年代",
@@ -444,7 +438,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       roadCaption: { road: "avenue", name: "光明大道", from: "南光高速", to: "龙大高速" },
     },
     {
-      id: "csot", act: "第三幕 · 路到哪里，城长到哪里", title: "3-4 · 第一个产业锚点",
+      id: "csot", act: "第三幕 · 路到哪里，城长到哪里", title: "3-3 · 第一个产业锚点",
       question: "新区靠什么起步？",
       body: "这些新长出来的地方里，有一个关键的起点。2009 年，TCL 和深圳合资成立华星光电，总投资 245 亿元；2011 年，第 8.5 代液晶面板线在凤凰街道投产。新区就是靠这样的大项目起的步。",
       source: "已核实：维基百科·华星光电。（厂区轮廓待接入）",
@@ -456,7 +450,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       motion: { kind: "push", toDistance: 5000, seconds: 9 },
     },
     {
-      id: "contrast", act: "第三幕 · 路到哪里，城长到哪里", title: "3-5 · 西密东空",
+      id: "contrast", act: "第三幕 · 路到哪里，城长到哪里", title: "3-4 · 西密东空",
       question: "两个起点留下了什么？",
       body: "现在回头看两岸，差别一眼就能看出来。西岸开发边界内的建筑密度，大约是东岸的 1.7 倍，连续成片；东岸是一个个村子像岛一样散着，还有大约 28% 的格子是空地。也正因为东岸的地块完整，后来的新中心，都放在了东岸。",
       source: "本项目计算：V1 建筑肌理分析（reports/v1-west-east）",
@@ -467,7 +461,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       motion: breathe(16000),
     },
     {
-      id: "hsr", act: "第三幕 · 路到哪里，城长到哪里", title: "3-6 · 两条高铁交汇光明城（2011 / 2021）",
+      id: "hsr", act: "第三幕 · 路到哪里，城长到哪里", title: "3-5 · 两条高铁交汇光明城（2011 / 2021）",
       question: "高铁从哪里进入深圳？",
       body: "再往后是高铁。2011 年广深港高铁开通，2021 年赣深高铁接进来，两条线在光明城交汇。从北边来的高铁，进了深圳先到光明城；下一站是深圳北，大约 16 公里，再往南就是福田和香港西九龙。",
       source: "已核实：维基百科·光明城站",
@@ -480,7 +474,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       grow: { hsr: 12 },
     },
     {
-      id: "line6", act: "第三幕 · 路到哪里，城长到哪里", title: "3-7 · 6 号线（2020）",
+      id: "line6", act: "第三幕 · 路到哪里，城长到哪里", title: "3-6 · 6 号线（2020）",
       question: "第一条地铁是怎么走的？",
       body: "2020 年 8 月，6 号线开通。跟着这列车走：它从龙华方向开过来，进光明的第一站是长圳，然后是凤凰城、光明大街、光明、科学公园，再一路向西，经过楼村、红花山，到公明广场，往松岗去。东西两岸，第一次用轨道连了起来。",
       source: "已核实：维基百科·深圳地铁6号线",
@@ -494,7 +488,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       stationFocus: ["6"],
     },
     {
-      id: "line6b", act: "第三幕 · 路到哪里，城长到哪里", title: "3-8 · 6 号线支线（2022 / 2025）",
+      id: "line6b", act: "第三幕 · 路到哪里，城长到哪里", title: "3-7 · 6 号线支线（2022 / 2025）",
       question: "支线连向哪里？",
       body: "6 号线支线分两次开通：2022 年先开了北边一段，2025 年往南接到光明城站，和高铁连上。现在从光明城往北，经过虹桥公园、光明、中大，到深理工。它的北端还预留了和东莞 1 号线直通，将来可以开到松山湖。",
       source: "已核实：维基百科·6号线支线；东莞时间网",
@@ -508,7 +502,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       stationFocus: ["6b"],
     },
     {
-      id: "line13", act: "第三幕 · 路到哪里，城长到哪里", title: "3-9 · 13 号线北延（2026）",
+      id: "line13", act: "第三幕 · 路到哪里，城长到哪里", title: "3-8 · 13 号线北延（2026）",
       question: "光明怎么坐地铁直达南山？",
       body: "2026 年 6 月，13 号线北延开通，全程在地下。这列车从南山方向开过来，穿过石岩进入光明，经过光明城、凤凰城、公明广场，一直到李松蓢。贯通以后，从光明到深圳湾口岸大约 45 分钟。规划里，它还要继续往北，对接东莞 5 号线。",
       source: "已核实：澎湃新闻；腾讯新闻",
@@ -522,7 +516,7 @@ export function buildStory(data: SandboxData, places: StoryPlaces, growth: Growt
       stationFocus: ["13"],
     },
     {
-      id: "fenghuang", act: "第三幕 · 路到哪里，城长到哪里", title: "3-10 · 交汇处长出中心：凤凰城",
+      id: "fenghuang", act: "第三幕 · 路到哪里，城长到哪里", title: "3-9 · 交汇处长出中心：凤凰城",
       question: "今天最成熟的中心在哪里？",
       body: "两条地铁、光明大道、观光路，在凤凰城交汇。区政府在这里；凤凰城站两侧，是蓝鲸世界（2021）和万达广场（2022）；旁边是光明文化艺术中心。线路交汇的地方，先长出了中心。凤凰城是新区第一个成熟起来的片区。",
       source: "已核实：经济参考报；深圳新闻网。本项目计算：6 号线与光明大道在凤凰城交汇",

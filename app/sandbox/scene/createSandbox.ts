@@ -591,8 +591,8 @@ const express = isGM
   // 起点地名先出现；路长到哪里，路上方的字就出现到哪里；长到头，浮现下一个地名
   const captionGroup = new THREE.Group();
   scene.add(captionGroup);
-  let captionItems: { element: HTMLElement; at: number }[] = [];
-  let captionProgress: (() => number) | null = null;
+  // 每个字 / 地名带自己那条路的进度（可以同时讲几条路）
+  let captionItems: { element: HTMLElement; at: number; progress: () => number }[] = [];
   // 全景下高速只有一根细线：在地面叠加层上画一条随路延伸的高亮带
   type OverlayStroke = { path: [number, number][]; at: number[]; color: string; width: number; progress: () => number };
   let strokes: OverlayStroke[] = [];
@@ -601,10 +601,10 @@ const express = isGM
   const clearRoadCaption = () => {
     for (const child of [...captionGroup.children]) captionGroup.remove(child);
     captionItems = [];
-    captionProgress = null;
     strokes = [];
   };
-  const showRoadCaption = (caption: NonNullable<StoryStep["roadCaption"]>) => {
+  type RoadCaption = Extract<NonNullable<StoryStep["roadCaption"]>, { road: string }>;
+  const showRoadCaption = (caption: RoadCaption) => {
     const isAvenue = caption.road === "avenue";
     const path = caption.road === "avenue" ? growth.avenue : growth.expresswayPaths[caption.road];
     if (path.length < 2) return;
@@ -612,6 +612,7 @@ const express = isGM
     const total = cum[cum.length - 1];
     const origin = path[0];
     // 高速的"延伸"按到起点的直线距离；光明大道按沿线里程
+    let captionProgress: () => number = () => Infinity;
     const measure = (p: [number, number], along: number) => (isAvenue ? along : Math.hypot(p[0] - origin[0], p[1] - origin[1]));
     const add = (text: string, className: string, p: [number, number], lift: number, at: number) => {
       const holder = document.createElement("div");
@@ -622,7 +623,7 @@ const express = isGM
       const object = new CSS2DObject(holder);
       object.position.set(p[0], terrain.heightAt(p[0], p[1]) + lift, p[1]);
       captionGroup.add(object);
-      captionItems.push({ element, at });
+      captionItems.push({ element, at, progress: () => captionProgress() });
     };
     // 起点地名放在路进入光明的地方（真正的起点在区外，常被说明卡挡住）
     const entry = path.find((p) => terrain.inside(p[0], p[1])) ?? origin;
@@ -639,10 +640,10 @@ const express = isGM
       const p = pointAt(path, cum, along);
       add(char, labelClasses.roadName, p, 150, measure(p, along));
     });
-    captionProgress = isAvenue
+    const progress = isAvenue
       ? () => (buildingStage === "avenue-grow" ? growUniforms.uGrowTime2.value * AVENUE_ALONG_SPEED : Infinity)
       : () => expresswayGrowth[caption.road as "longda" | "nanguang"].uniform.value;
-    const progress = captionProgress;
+    captionProgress = progress;
     strokes.push({ path, at: path.map((p, i) => measure(p, cum[i])), color: isAvenue ? "rgba(244,166,60,0.95)" : "rgba(232,112,72,0.95)", width: isAvenue ? 150 : 200, progress });
     strokeDrawn = -1;
   };
@@ -658,9 +659,7 @@ const express = isGM
     strokeDrawn = -1;
   };
   const updateRoadCaption = (delta: number) => {
-    if (!captionProgress) { drawStrokes(delta); return; }
-    const progress = captionProgress();
-    for (const item of captionItems) if (progress >= item.at && !item.element.classList.contains(labelClasses.lit)) item.element.classList.add(labelClasses.lit);
+    for (const item of captionItems) if (item.progress() >= item.at && !item.element.classList.contains(labelClasses.lit)) item.element.classList.add(labelClasses.lit);
     drawStrokes(delta);
   };
   const drawStrokes = (delta: number) => {
@@ -874,7 +873,7 @@ const express = isGM
     applyGrowth(step);
     for (const lineId of step.stationFocus ?? []) stationFocus.add(lineId);
     for (const item of step.grow?.metro ?? []) showMetroStroke(item.line);
-    if (step.roadCaption) showRoadCaption(step.roadCaption);
+    for (const caption of [step.roadCaption ?? []].flat()) showRoadCaption(caption);
     if (step.anim) startAnim(step.anim);
     if (step.watershed) void showWatershed(true);
   };

@@ -1,0 +1,196 @@
+{
+ "meta": {
+  "generatedAt": "2026-10-11T07:52:16.673Z",
+  "purpose": "光明沙盘 WebGPU 讲解动画决定“光点密度”用的车流/客流量级（不需要精确）",
+  "projection": {
+   "origin": [
+    113.929007,
+    22.76207
+   ],
+   "k": 0.9221194861972872,
+   "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+  },
+  "method": "有实测的直接给实测值；没有实测的按“车道数 × 单车道通行能力 × 高峰系数”估算，并明确标注是估计。",
+  "caveats": [
+   "**光明区没有查到公开的道路断面车流量实测数据**（交警/交通局未发布）；下面的道路数字都是估计值，只有松白/东明大道路口“智能信控优化”这条是官方新闻（说明它是关键拥堵路口）。",
+   "地铁 6 号线的客流是全线工作日日均（含光明以外江段），不是光明区内断面客流。",
+   "13 号线截至 2025-12-30 只开通到石岩上屋站，**光明段仍在建**，因此光明段客流数据不存在（未找到）。",
+   "光点密度建议只表示“量级对比”，不要当地图级精确数据。"
+  ],
+  "sources": [
+   {
+    "title": "地铁6号线工作日试行“大站快车”（深圳晚报，2023-11-20）",
+    "url": "http://barb.sznews.com/attachment/pdf/202311/20/b12d9b11-6dac-4463-96f3-a098fb2ad933.pdf"
+   },
+   {
+    "title": "地铁6号线压缩行车间隔（光明新闻，2023-03-21）",
+    "url": "https://barb.sznews.com/attachment/pdf/202303/21/97a9dd4d-f6ac-40ab-a172-1b8754d8d0d0.pdf"
+   },
+   {
+    "title": "13号线开通：留仙洞“崩了”，石岩“涨了”，光明“赢了”（2025-12-30）",
+    "url": "https://dutenews.com/n/article/15735219"
+   },
+   {
+    "title": "减少等待！光明信号灯“双脑”上线（2026-04）",
+    "url": "https://dutenews.com/n/article/15771646"
+   },
+   {
+    "title": "NCHRP Report 187 / HCM：城市道路一条车道基本通行能力约 1800 pcu/h",
+    "url": "https://onlinepubs.trb.org/Onlinepubs/nchrp/nchrp_rpt_187.pdf"
+   }
+  ]
+ },
+ "metro": [
+  {
+   "id": "line6",
+   "name": "深圳地铁 6 号线（光明 ↔ 深圳北，光明区当前唯一的轨道干线）",
+   "opened": "2020-08-18 开通初期运营",
+   "measured": {
+    "dailyRidership": [
+     {
+      "value": "22.75 万人次/日",
+      "when": "开通初期",
+      "source": {
+       "title": "地铁6号线工作日试行“大站快车”（深圳晚报，2023-11-20）",
+       "url": "http://barb.sznews.com/attachment/pdf/202311/20/b12d9b11-6dac-4463-96f3-a098fb2ad933.pdf"
+      },
+      "confidence": "high"
+     },
+     {
+      "value": "44.26 万人次/日",
+      "when": "2023-03-01~19 工作日日均",
+      "source": {
+       "title": "地铁6号线压缩行车间隔（光明新闻，2023-03-21）",
+       "url": "https://barb.sznews.com/attachment/pdf/202303/21/97a9dd4d-f6ac-40ab-a172-1b8754d8d0d0.pdf"
+      },
+      "confidence": "high"
+     },
+     {
+      "value": "46.75 万人次/日",
+      "when": "2023-11",
+      "source": {
+       "title": "地铁6号线工作日试行“大站快车”（深圳晚报，2023-11-20）",
+       "url": "http://barb.sznews.com/attachment/pdf/202311/20/b12d9b11-6dac-4463-96f3-a098fb2ad933.pdf"
+      },
+      "confidence": "high"
+     }
+    ],
+    "headway": "最小行车间隔由 4 分 35 秒压缩到 2 分 51 秒（早高峰）",
+    "cumulative": "开通以来累计运送乘客 3.92 亿人次"
+   },
+   "peakHourEstimate": {
+    "value": "单向约 2.5–3.0 万人次/小时",
+    "calculation": "2 分 51 秒间隔 ≈ 21 列/小时（单方向）；6 节编组 B 型车按定员 ~1200–1460 人计 → 2.5–3.1 万人次/小时·方向；这是按行车能力算的上限，不是实测断面客流",
+    "confidence": "estimate（估计值）"
+   },
+   "lightDensityHint": "沿 6 号线走廊（光明大街—凤凰城—长圳—上屋方向）给最高一档光点密度；站间段可以按“站点密、区间疏”做呼吸感。"
+  },
+  {
+   "id": "line13",
+   "name": "深圳地铁 13 号线（南北干线，光明段在建）",
+   "status2025": "截至 2025-12-30 开通运营到石岩上屋站，**光明段（二期）仍在建**；光明乘客目前靠 6 号线到上屋换乘 13 号线南下",
+   "measured": {
+    "dailyRidership": "未找到（光明段尚未开通，无客流数据）"
+   },
+   "qualitative": [
+    "开通首日晚高峰留仙洞换乘客流极端拥挤，5 号线 8:20–8:50 一度双向不停站通过留仙洞站",
+    "上屋站早高峰首发常被从光明过来的乘客坐满",
+    "从石岩/上屋到深圳湾口岸约 37 分钟；到高新园约 30 分钟以内"
+   ],
+   "peakHourEstimate": {
+    "value": "未找到（未开通段不做估算）",
+    "confidence": "not-found"
+   },
+   "lightDensityHint": "光明段未开通 → 不要在光明区内画 13 号线车流光点；只画 6 号线，或在“规划/在建”图层上用虚线区分。",
+   "sourceUrls": [
+    {
+     "title": "13号线开通：留仙洞“崩了”，石岩“涨了”，光明“赢了”（2025-12-30）",
+     "url": "https://dutenews.com/n/article/15735219"
+    }
+   ],
+   "confidence": "medium（媒体报道口径）"
+  }
+ ],
+ "roads": [
+  {
+   "id": "songbai",
+   "name": "松白路（107 国道，光明段）",
+   "lanes": "双向 6—8 车道（经光明、公明、马田一带的主要货运+客运通道）",
+   "peakHourEstimate": "约 8,600—13,000 pcu/h（双向）",
+   "calculation": "单车道基本通行能力 1800 pcu/h × 6—8 车道 × 0.8—0.9 高峰系数",
+   "evidence": "松白/东明大道路口已上线“慢脑+快脑”智能信控：南方向绿灯 42s→48s，排队等待缩短 10%~15%、平均排队长度缩短约 15%",
+   "source": {
+    "title": "减少等待！光明信号灯“双脑”上线（2026-04）",
+    "url": "https://dutenews.com/n/article/15771646"
+   },
+   "confidence": "estimate（估计值；路口优化是官方新闻）"
+  },
+  {
+   "id": "guangqiao",
+   "name": "光侨路",
+   "lanes": "双向 6 车道（光明中心区南北向主干道）",
+   "peakHourEstimate": "约 6,500—9,700 pcu/h（双向）",
+   "calculation": "同上",
+   "source": null,
+   "confidence": "estimate（估计值）"
+  },
+  {
+   "id": "guanguang",
+   "name": "观光路",
+   "lanes": "双向 4—6 车道",
+   "peakHourEstimate": "约 4,300—9,700 pcu/h（双向）",
+   "calculation": "同上",
+   "source": null,
+   "confidence": "estimate（估计值）"
+  },
+  {
+   "id": "guangming-ave",
+   "name": "光明大道",
+   "lanes": "双向 6 车道",
+   "peakHourEstimate": "约 6,500—9,700 pcu/h（双向）",
+   "calculation": "同上",
+   "source": null,
+   "confidence": "estimate（估计值）"
+  },
+  {
+   "id": "gongchang",
+   "name": "公常路",
+   "lanes": "双向 4—6 车道（公明 ↔ 东莞黄江方向，过境货运多）",
+   "peakHourEstimate": "约 4,300—9,700 pcu/h（双向）",
+   "calculation": "同上",
+   "source": null,
+   "confidence": "estimate（估计值）"
+  }
+ ],
+ "lightDensityRecommendation": {
+  "scale": "以“日客流/日车流”量级分 4 档光点密度（点数/公里·分钟）",
+  "tiers": [
+   {
+    "tier": "S（最高）",
+    "criteria": "地铁 6 号线走廊 + 松白路（107 国道）：日客流 4.4–4.7 万人次以上 / 高峰双向近万 pcu",
+    "suggestion": "光点最密、速度最快，主线光带"
+   },
+   {
+    "tier": "A",
+    "criteria": "光侨路、光明大道、观光路等主干道：高峰双向 0.6–1.0 万 pcu",
+    "suggestion": "光点次密，按路段分档"
+   },
+   {
+    "tier": "B",
+    "criteria": "次干道与支路（公常路等）：高峰双向 0.4–0.7 万 pcu",
+    "suggestion": "稀一些，速度慢"
+   },
+   {
+    "tier": "C",
+    "criteria": "13 号线光明段：未开通",
+    "suggestion": "不画；如需表达规划，用虚线/低亮度静点"
+   }
+  ],
+  "note": "上述分档是量级映射建议，前端可按 shader 里的密度参数直接缩放；不要把它当成实测交通量。"
+ },
+ "notFound": [
+  "光明区道路断面的实测车流量（高峰小时、日交通量）—— 未找到公开数据。",
+  "光明区内各地铁站的进出站客流（清分客流）—— 未找到公开数据。",
+  "13 号线光明段的设计客流预测 —— 未找到（未开通）。"
+ ]
+}

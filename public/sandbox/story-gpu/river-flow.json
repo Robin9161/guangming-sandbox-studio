@@ -1,0 +1,2609 @@
+{
+ "meta": {
+  "generatedAt": "2026-10-11T07:52:21.563Z",
+  "purpose": "光明沙盘 WebGPU 讲解动画「茅洲河从污染到变清」用的河道流向线（有序折线 + 累计里程）",
+  "projection": {
+   "origin": [
+    113.929007,
+    22.76207
+   ],
+   "k": 0.9221194861972872,
+   "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+  },
+  "grid": {
+   "nx": 729,
+   "nz": 761,
+   "spacing": 30,
+   "x0": -10920,
+   "z0": -11400,
+   "xRange": [
+    -10920,
+    10920
+   ],
+   "zRange": [
+    -11400,
+    11400
+   ],
+   "order": "行优先（row-major），行 0 = 最北（z = z0），行内 i 沿 +x（东）；索引 k = j * nx + i",
+   "elevationSource": "public/sandbox/dem.bin（Int16 分米）× meta.dem.scale=0.1，**未做高程夸张**（渲染端 exaggerate() 只用于显示）",
+   "note": "DEM 覆盖范围是光明区界外扩约 2.3 km（x ±10920、z ±11400），比区界大，四周边界被当作出流口；因此边缘附近的汇水累积会被截断，越靠边越不可信。"
+  },
+  "method": [
+   "河道几何直接取 public/sandbox/sandbox.json 的 water.lines（OSM 实测河道，已投影为沙盘本地米制 x/z）。",
+   "同一条河的 way 是分段的，先按端点 100 m 容差接成图，再取最长的一条简单路径作为干流，其余段单列为分支。",
+   "每条河先按端点容差把 OSM 分段接成一张图（100 m 起，接不上就放大到 200/350/600 m，实际用的容差写在每条河的 joinToleranceM）；",
+   "根节点 = 离全流域出海口（-5877,-3996，茅洲河下游端）最近的端点；干流 = 从根出发的最长路径（另一端即最远上游）。",
+   "流向用两个信号投票：真实海拔更高的一端为上游、离全流域出海口更远的一端为上游；每条折线都带 orientationEvidence（两票是否一致）。",
+   "高程剖面 monotonicDescendingRatio = 逐点不上升（允许 +0.05 m 噪声）的比例，用来判断这条折线是不是真的顺流而下。",
+   "cumulativeM 是沿折线的累计里程（米），与 points 一一对应。"
+  ],
+  "caveats": [
+   "「上游/下游」是按地形判定的，个别点受 DEM 噪声影响可能反向（每条给了 monotonicDescendingRatio：越接近 1 说明越单调顺流）。",
+   "茅洲河在光明区内是一棵树（两条上游支汊在城区汇合后向西），「干流」取全图最长路径，别的支汊单列为 branch。",
+   "OSM 分段的接缝不总闭合：茅洲河最下游有一小段与上一段之间约几百米缺口（数据本身如此），在 branch 的 note 里标了。",
+   "无名圳是没有正式名称的沟渠，OSM 里就这么标的。"
+  ],
+  "outlet": {
+   "x": -5430,
+   "z": -4279,
+   "elevationM": 4.7,
+   "note": "茅洲河干流在数据范围内的最下游端（继续向西北出区、经松岗/沙井入珠江口）"
+  },
+  "riverCount": 19,
+  "totalLengthM": 50071
+ },
+ "rivers": [
+  {
+   "id": "main-stem-茅洲河",
+   "name": "茅洲河干流（光明段）",
+   "kind": "main-stem",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -2434.1,
+     4074.5
+    ],
+    [
+     -2358.8,
+     3894.9
+    ],
+    [
+     -2394.9,
+     3602.5
+    ],
+    [
+     -2394.6,
+     3396.3
+    ],
+    [
+     -2427.5,
+     3300.5
+    ],
+    [
+     -2523,
+     3207.4
+    ],
+    [
+     -2536.8,
+     3101.2
+    ],
+    [
+     -2499.5,
+     2980.4
+    ],
+    [
+     -2185.7,
+     2702.5
+    ],
+    [
+     -2127.5,
+     2625.8
+    ],
+    [
+     -2103,
+     2443.9
+    ],
+    [
+     -2031.9,
+     2252.5
+    ],
+    [
+     -2084.3,
+     2094.4
+    ],
+    [
+     -2087.8,
+     2019.9
+    ],
+    [
+     -2061,
+     1948.5
+    ],
+    [
+     -2011.6,
+     1883.7
+    ],
+    [
+     -1990.8,
+     1751.1
+    ],
+    [
+     -1989.1,
+     1719.7
+    ],
+    [
+     -2013.1,
+     1678.8
+    ],
+    [
+     -2142.5,
+     1631.6
+    ],
+    [
+     -2166.8,
+     1603.6
+    ],
+    [
+     -2187.6,
+     1495.6
+    ],
+    [
+     -2170,
+     1379.1
+    ],
+    [
+     -2061,
+     1152.1
+    ],
+    [
+     -2046.1,
+     984.9
+    ],
+    [
+     -2045.8,
+     841.4
+    ],
+    [
+     -2077.7,
+     544.1
+    ],
+    [
+     -2131.8,
+     323.4
+    ],
+    [
+     -2143.7,
+     193.7
+    ],
+    [
+     -2121.3,
+     143.6
+    ],
+    [
+     -2008.1,
+     11.6
+    ],
+    [
+     -1980.7,
+     -85.6
+    ],
+    [
+     -2055.6,
+     -579.5
+    ],
+    [
+     -2104.7,
+     -655.7
+    ],
+    [
+     -2173,
+     -858.4
+    ],
+    [
+     -2187.7,
+     -947.4
+    ],
+    [
+     -2155.7,
+     -1014
+    ],
+    [
+     -2141.6,
+     -1189.4
+    ],
+    [
+     -2086.1,
+     -1374.3
+    ],
+    [
+     -1970.2,
+     -1565.3
+    ],
+    [
+     -1870.2,
+     -1883.8
+    ],
+    [
+     -1791.8,
+     -2391.2
+    ],
+    [
+     -1803,
+     -2473.6
+    ],
+    [
+     -2048.7,
+     -2919.1
+    ],
+    [
+     -2188.9,
+     -3131.4
+    ],
+    [
+     -2778.1,
+     -3590.3
+    ],
+    [
+     -2933.2,
+     -3805
+    ],
+    [
+     -3049.4,
+     -3928.2
+    ],
+    [
+     -3269.1,
+     -4014.7
+    ],
+    [
+     -3733.8,
+     -4147.6
+    ],
+    [
+     -4263.9,
+     -4323
+    ],
+    [
+     -4543.7,
+     -4352.7
+    ],
+    [
+     -5304.1,
+     -4313.8
+    ],
+    [
+     -5877.5,
+     -3995.8
+    ],
+    [
+     -5430.5,
+     -4279.4
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    195,
+    489,
+    696,
+    797,
+    930,
+    1037,
+    1164,
+    1583,
+    1679,
+    1863,
+    2067,
+    2233,
+    2308,
+    2384,
+    2466,
+    2600,
+    2631,
+    2679,
+    2817,
+    2854,
+    2964,
+    3082,
+    3333,
+    3501,
+    3645,
+    3944,
+    4171,
+    4301,
+    4356,
+    4530,
+    4631,
+    5130,
+    5221,
+    5435,
+    5525,
+    5599,
+    5775,
+    5968,
+    6192,
+    6525,
+    7039,
+    7122,
+    7631,
+    7885,
+    8632,
+    8897,
+    9066,
+    9302,
+    9786,
+    10344,
+    10625,
+    11387,
+    12042,
+    12572
+   ],
+   "lengthM": 12572,
+   "elevationProfileM": [
+    19.6,
+    19.4,
+    18.8,
+    18.2,
+    18.2,
+    19.1,
+    19.4,
+    18.4,
+    16.2,
+    16,
+    15.6,
+    14.6,
+    14.8,
+    15,
+    14.7,
+    13.9,
+    13.2,
+    13.1,
+    13.1,
+    13.5,
+    13.6,
+    13.4,
+    13.1,
+    13,
+    12.9,
+    12.9,
+    12.7,
+    11.4,
+    9.9,
+    9.6,
+    9.6,
+    10,
+    11.7,
+    11.8,
+    11.1,
+    10.5,
+    10.1,
+    8.7,
+    7.8,
+    7.8,
+    10,
+    6.8,
+    6.3,
+    6.2,
+    8.3,
+    6.8,
+    6.5,
+    6.7,
+    6.6,
+    4.5,
+    5.5,
+    5.3,
+    4.1,
+    4.3,
+    4.7
+   ],
+   "start": {
+    "x": -2434,
+    "z": 4075,
+    "elevationM": 19.6,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -5430,
+    "z": -4279,
+    "elevationM": 4.7,
+    "role": "下游端"
+   },
+   "dropM": 14.9,
+   "monotonicDescendingRatio": 0.722,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 19.6,
+    "elevationEndM": 4.7,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8774,
+    "distanceToBasinExitEndM": 529,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 600,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "流域干流，在光明区西部汇合各支流后向西北经松岗/沙井入珠江口",
+   "mergedFrom": "4 段 OSM way 接成"
+  },
+  {
+   "id": "main-stem-茅洲河-1",
+   "name": "茅洲河干流（光明段）（分支 1）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     2865.3,
+     -3289.3
+    ],
+    [
+     2816.8,
+     -3244.8
+    ],
+    [
+     2626.9,
+     -3175.7
+    ],
+    [
+     2140.6,
+     -2935
+    ],
+    [
+     1974.6,
+     -2908.5
+    ],
+    [
+     1913.4,
+     -2851.5
+    ],
+    [
+     1568.3,
+     -2847.6
+    ],
+    [
+     1466,
+     -2885.7
+    ],
+    [
+     1294.2,
+     -3008.3
+    ],
+    [
+     1127.9,
+     -3077.5
+    ],
+    [
+     891,
+     -3076
+    ],
+    [
+     700.5,
+     -3124.5
+    ],
+    [
+     463.9,
+     -3305.9
+    ],
+    [
+     253.9,
+     -3565.3
+    ],
+    [
+     195.7,
+     -3602.4
+    ],
+    [
+     -268.1,
+     -3445.7
+    ],
+    [
+     -407.9,
+     -3376.2
+    ],
+    [
+     -808.8,
+     -3076.5
+    ],
+    [
+     -1048.8,
+     -2875.8
+    ],
+    [
+     -1108.9,
+     -2852.1
+    ],
+    [
+     -1501.5,
+     -2801.2
+    ],
+    [
+     -1782.6,
+     -2865.9
+    ],
+    [
+     -1917.9,
+     -2878.5
+    ],
+    [
+     -2048.7,
+     -2919.1
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    66,
+    268,
+    811,
+    979,
+    1062,
+    1407,
+    1517,
+    1728,
+    1908,
+    2145,
+    2341,
+    2639,
+    2973,
+    3042,
+    3532,
+    3688,
+    4188,
+    4501,
+    4566,
+    4962,
+    5250,
+    5386,
+    5523
+   ],
+   "lengthM": 5523,
+   "elevationProfileM": [
+    21.3,
+    20.6,
+    18.7,
+    14.9,
+    14.9,
+    14.9,
+    19.3,
+    19.7,
+    17.6,
+    15.8,
+    15.8,
+    14.9,
+    15.1,
+    17.3,
+    17,
+    10.6,
+    9.7,
+    12,
+    11.8,
+    11.7,
+    10.7,
+    8.9,
+    6.6,
+    6.2
+   ],
+   "start": {
+    "x": 2865,
+    "z": -3289,
+    "elevationM": 21.3,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -2049,
+    "z": -2919,
+    "elevationM": 6.2,
+    "role": "下游端"
+   },
+   "dropM": 15.1,
+   "monotonicDescendingRatio": 0.783,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 21.3,
+    "elevationEndM": 6.2,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8771,
+    "distanceToBasinExitEndM": 3977,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 600,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 24 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "main-stem-茅洲河-2",
+   "name": "茅洲河干流（光明段）（分支 2）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -5823.7,
+     -4021.3
+    ],
+    [
+     -5877.5,
+     -3995.8
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    60
+   ],
+   "lengthM": 60,
+   "elevationProfileM": [
+    4.4,
+    4.3
+   ],
+   "start": {
+    "x": -5824,
+    "z": -4021,
+    "elevationM": 4.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -5877,
+    "z": -3996,
+    "elevationM": 4.3,
+    "role": "下游端"
+   },
+   "dropM": 0.1,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 4.4,
+    "elevationEndM": 4.3,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 59,
+    "distanceToBasinExitEndM": 1,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 600,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "干流最下游的一小段（原始 OSM 数据里与上一段之间约有 470 m 缺口，没接上），plays 时要注意这处断点"
+  },
+  {
+   "id": "tributary-合水口河",
+   "name": "合水口河",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3868.1,
+     322.7
+    ],
+    [
+     -3870.6,
+     256.5
+    ],
+    [
+     -3828.7,
+     231
+    ],
+    [
+     -3738.4,
+     -101
+    ],
+    [
+     -3646,
+     -342.4
+    ],
+    [
+     -3172.2,
+     -483.4
+    ],
+    [
+     -3152.3,
+     -502.7
+    ],
+    [
+     -3390,
+     -1231.8
+    ],
+    [
+     -3566.3,
+     -1547.1
+    ],
+    [
+     -3721.5,
+     -1721.9
+    ],
+    [
+     -3928.6,
+     -1848.9
+    ],
+    [
+     -5914.5,
+     -2690.6
+    ],
+    [
+     -6069.2,
+     -2754.2
+    ],
+    [
+     -6402.1,
+     -2900.3
+    ],
+    [
+     -6483.6,
+     -3190
+    ],
+    [
+     -6592.6,
+     -3457.1
+    ],
+    [
+     -6660.3,
+     -3568.5
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    66,
+    115,
+    459,
+    718,
+    1212,
+    1240,
+    2007,
+    2368,
+    2602,
+    2845,
+    5002,
+    5169,
+    5532,
+    5833,
+    6122,
+    6252
+   ],
+   "lengthM": 6252,
+   "elevationProfileM": [
+    15.6,
+    19.2,
+    18.7,
+    13.2,
+    12.3,
+    12.6,
+    12.4,
+    10.3,
+    9.3,
+    9.6,
+    10.9,
+    5.8,
+    5.1,
+    1.5,
+    0.9,
+    1.5,
+    2.2
+   ],
+   "start": {
+    "x": -3868,
+    "z": 323,
+    "elevationM": 15.6,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -6660,
+    "z": -3568,
+    "elevationM": 2.2,
+    "role": "下游端"
+   },
+   "dropM": 13.4,
+   "monotonicDescendingRatio": 0.625,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 15.6,
+    "elevationEndM": 2.2,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 4763,
+    "distanceToBasinExitEndM": 892,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "4 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-玉田河",
+   "name": "玉田河",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -4256.3,
+     5027.9
+    ],
+    [
+     -4176.6,
+     5019.1
+    ],
+    [
+     -4047.3,
+     4932.3
+    ],
+    [
+     -3935,
+     4966
+    ],
+    [
+     -3785.6,
+     4858.3
+    ],
+    [
+     -3688,
+     4798.1
+    ],
+    [
+     -3581.8,
+     4623.8
+    ],
+    [
+     -3389.4,
+     4301.8
+    ],
+    [
+     -3376.3,
+     4176.5
+    ],
+    [
+     -3332.1,
+     4073.2
+    ],
+    [
+     -3303.5,
+     3862
+    ],
+    [
+     -2681.4,
+     3406
+    ],
+    [
+     -2512.6,
+     3283.1
+    ],
+    [
+     -2486.3,
+     3247
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    80,
+    236,
+    353,
+    537,
+    652,
+    856,
+    1231,
+    1357,
+    1470,
+    1683,
+    2454,
+    2663,
+    2707
+   ],
+   "lengthM": 2707,
+   "elevationProfileM": [
+    25.4,
+    25.2,
+    25.2,
+    24.8,
+    24.7,
+    24.6,
+    24.4,
+    22.6,
+    21.9,
+    21.5,
+    21.7,
+    20.6,
+    19.1,
+    18.7
+   ],
+   "start": {
+    "x": -4256,
+    "z": 5028,
+    "elevationM": 25.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -2486,
+    "z": 3247,
+    "elevationM": 18.7,
+    "role": "下游端"
+   },
+   "dropM": 6.7,
+   "monotonicDescendingRatio": 0.923,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 25.4,
+    "elevationEndM": 18.7,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9168,
+    "distanceToBasinExitEndM": 7997,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "7 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-玉田河-1",
+   "name": "玉田河（分支 1）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3376.3,
+     4176.5
+    ],
+    [
+     -3332.1,
+     4073.2
+    ],
+    [
+     -3319.8,
+     3875.4
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    112,
+    311
+   ],
+   "lengthM": 311,
+   "elevationProfileM": [
+    21.9,
+    21.5,
+    21.8
+   ],
+   "start": {
+    "x": -3376,
+    "z": 4177,
+    "elevationM": 21.9,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -3320,
+    "z": 3875,
+    "elevationM": 21.8,
+    "role": "下游端"
+   },
+   "dropM": 0.1,
+   "monotonicDescendingRatio": 0.5,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 21.9,
+    "elevationEndM": 21.8,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8547,
+    "distanceToBasinExitEndM": 8276,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 3 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-玉田河-2",
+   "name": "玉田河（分支 2）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3581.8,
+     4623.8
+    ],
+    [
+     -3389.4,
+     4301.8
+    ],
+    [
+     -3385,
+     4245.7
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    375,
+    431
+   ],
+   "lengthM": 431,
+   "elevationProfileM": [
+    24.4,
+    22.6,
+    22.5
+   ],
+   "start": {
+    "x": -3582,
+    "z": 4624,
+    "elevationM": 24.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -3385,
+    "z": 4246,
+    "elevationM": 22.5,
+    "role": "下游端"
+   },
+   "dropM": 1.9,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 24.4,
+    "elevationEndM": 22.5,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8920,
+    "distanceToBasinExitEndM": 8610,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 3 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-玉田河-3",
+   "name": "玉田河（分支 3）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3303.5,
+     3862
+    ],
+    [
+     -2745,
+     3452.2
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    693
+   ],
+   "lengthM": 693,
+   "elevationProfileM": [
+    21.7,
+    20.9
+   ],
+   "start": {
+    "x": -3303,
+    "z": 3862,
+    "elevationM": 21.7,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -2745,
+    "z": 3452,
+    "elevationM": 20.9,
+    "role": "下游端"
+   },
+   "dropM": 0.8,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 21.7,
+    "elevationEndM": 20.9,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8269,
+    "distanceToBasinExitEndM": 8080,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 2 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-玉田河-4",
+   "name": "玉田河（分支 4）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3785.6,
+     4858.3
+    ],
+    [
+     -3688,
+     4798.1
+    ],
+    [
+     -3599,
+     4651.4
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    115,
+    286
+   ],
+   "lengthM": 286,
+   "elevationProfileM": [
+    24.7,
+    24.6,
+    24.5
+   ],
+   "start": {
+    "x": -3786,
+    "z": 4858,
+    "elevationM": 24.7,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -3599,
+    "z": 4651,
+    "elevationM": 24.5,
+    "role": "下游端"
+   },
+   "dropM": 0.2,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 24.7,
+    "elevationEndM": 24.5,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9098,
+    "distanceToBasinExitEndM": 8942,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 3 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-玉田河-5",
+   "name": "玉田河（分支 5）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -3935,
+     4966
+    ],
+    [
+     -3800.4,
+     4875.9
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    162
+   ],
+   "lengthM": 162,
+   "elevationProfileM": [
+    24.8,
+    24.8
+   ],
+   "start": {
+    "x": -3935,
+    "z": 4966,
+    "elevationM": 24.8,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -3800,
+    "z": 4876,
+    "elevationM": 24.8,
+    "role": "下游端"
+   },
+   "dropM": 0,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 24.8,
+    "elevationEndM": 24.8,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9170,
+    "distanceToBasinExitEndM": 9112,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 2 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-玉田河-6",
+   "name": "玉田河（分支 6）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -4256.3,
+     5027.9
+    ],
+    [
+     -4176.6,
+     5019.1
+    ],
+    [
+     -4047.3,
+     4932.3
+    ],
+    [
+     -3989.2,
+     4953.6
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    80,
+    236,
+    298
+   ],
+   "lengthM": 298,
+   "elevationProfileM": [
+    25.4,
+    25.2,
+    25.2,
+    24.8
+   ],
+   "start": {
+    "x": -4256,
+    "z": 5028,
+    "elevationM": 25.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -3989,
+    "z": 4954,
+    "elevationM": 24.8,
+    "role": "下游端"
+   },
+   "dropM": 0.6,
+   "monotonicDescendingRatio": 1,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 25.4,
+    "elevationEndM": 24.8,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9168,
+    "distanceToBasinExitEndM": 9147,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 7,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 4 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "tributary-鹅颈水",
+   "name": "鹅颈水",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     2012.9,
+     4323.8
+    ],
+    [
+     1863.7,
+     4327.9
+    ],
+    [
+     1688.2,
+     4279.6
+    ],
+    [
+     1639.9,
+     4282.9
+    ],
+    [
+     1548,
+     4340.4
+    ],
+    [
+     1407.9,
+     4360.2
+    ],
+    [
+     1231.2,
+     4294.7
+    ],
+    [
+     981.3,
+     4234.6
+    ],
+    [
+     616.7,
+     3915.2
+    ],
+    [
+     545.8,
+     3873.5
+    ],
+    [
+     427.7,
+     3839
+    ],
+    [
+     320.6,
+     3686.9
+    ],
+    [
+     214,
+     3618.2
+    ],
+    [
+     -271.1,
+     3221.1
+    ],
+    [
+     -533.9,
+     3047.4
+    ],
+    [
+     -627.3,
+     3020
+    ],
+    [
+     -945.2,
+     3046.6
+    ],
+    [
+     -1060.3,
+     3014.7
+    ],
+    [
+     -1253.9,
+     2803.8
+    ],
+    [
+     -1626.8,
+     2592.3
+    ],
+    [
+     -1718.2,
+     2518.1
+    ],
+    [
+     -1789.7,
+     1983.6
+    ],
+    [
+     -1926.2,
+     1791.5
+    ],
+    [
+     -1990.8,
+     1751.1
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    149,
+    331,
+    380,
+    488,
+    630,
+    818,
+    1075,
+    1560,
+    1642,
+    1765,
+    1951,
+    2078,
+    2705,
+    3020,
+    3117,
+    3436,
+    3556,
+    3842,
+    4271,
+    4388,
+    4928,
+    5163,
+    5239
+   ],
+   "lengthM": 5239,
+   "elevationProfileM": [
+    49,
+    45.2,
+    38.1,
+    36.1,
+    32.1,
+    31.3,
+    32.3,
+    29.2,
+    26,
+    25.5,
+    24.6,
+    24,
+    23.3,
+    21.6,
+    20.4,
+    20.1,
+    17.6,
+    17.2,
+    15.9,
+    15.1,
+    15.1,
+    13.6,
+    13.2,
+    13.2
+   ],
+   "start": {
+    "x": 2013,
+    "z": 4324,
+    "elevationM": 49,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -1991,
+    "z": 1751,
+    "elevationM": 13.2,
+    "role": "下游端"
+   },
+   "dropM": 35.8,
+   "monotonicDescendingRatio": 0.957,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 49,
+    "elevationEndM": 13.2,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 11466,
+    "distanceToBasinExitEndM": 6938,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 1,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "1 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-新陂头河",
+   "name": "新陂头河",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     3152.2,
+     -6282.9
+    ],
+    [
+     3120.5,
+     -6265.4
+    ],
+    [
+     3021.9,
+     -6167.2
+    ],
+    [
+     2981.7,
+     -6091.3
+    ],
+    [
+     2823.1,
+     -6007.5
+    ],
+    [
+     2801.6,
+     -5939.3
+    ],
+    [
+     2801,
+     -5834.7
+    ],
+    [
+     2771.3,
+     -5774.5
+    ],
+    [
+     2610.5,
+     -5710
+    ],
+    [
+     2385.2,
+     -5487.5
+    ],
+    [
+     2309.5,
+     -5481.1
+    ],
+    [
+     2255.3,
+     -5381
+    ],
+    [
+     2077.2,
+     -5341.6
+    ],
+    [
+     1707.3,
+     -5173.8
+    ],
+    [
+     1605.4,
+     -5146.1
+    ],
+    [
+     1479.1,
+     -5068.9
+    ],
+    [
+     1277.4,
+     -4928.8
+    ],
+    [
+     1237.8,
+     -4854.1
+    ],
+    [
+     1220.6,
+     -4755.8
+    ],
+    [
+     1162.5,
+     -4685.7
+    ],
+    [
+     1057.1,
+     -4680.4
+    ],
+    [
+     1002.5,
+     -4710.3
+    ],
+    [
+     905.2,
+     -4658.4
+    ],
+    [
+     785.4,
+     -4679.3
+    ],
+    [
+     717.6,
+     -4662.3
+    ],
+    [
+     688,
+     -4675.6
+    ],
+    [
+     638.4,
+     -4783.5
+    ],
+    [
+     596.2,
+     -4784.8
+    ],
+    [
+     578.8,
+     -4689.5
+    ],
+    [
+     446.4,
+     -4635.3
+    ],
+    [
+     219.2,
+     -4441.3
+    ],
+    [
+     207.5,
+     -4416.9
+    ],
+    [
+     231.1,
+     -4202.2
+    ],
+    [
+     -32.3,
+     -3953.9
+    ],
+    [
+     -49.1,
+     -3887.2
+    ],
+    [
+     -24,
+     -3800.7
+    ],
+    [
+     -29.2,
+     -3749.5
+    ],
+    [
+     -162.4,
+     -3634.3
+    ],
+    [
+     -268.1,
+     -3445.7
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    36,
+    175,
+    261,
+    441,
+    512,
+    617,
+    684,
+    857,
+    1174,
+    1250,
+    1364,
+    1546,
+    1952,
+    2058,
+    2206,
+    2451,
+    2536,
+    2636,
+    2727,
+    2832,
+    2895,
+    3005,
+    3126,
+    3196,
+    3229,
+    3348,
+    3390,
+    3487,
+    3630,
+    3928,
+    3956,
+    4172,
+    4533,
+    4602,
+    4692,
+    4744,
+    4920,
+    5136
+   ],
+   "lengthM": 5136,
+   "elevationProfileM": [
+    16.8,
+    17.5,
+    17,
+    16.3,
+    14.4,
+    14.8,
+    13.8,
+    13.9,
+    11.3,
+    13.3,
+    12.3,
+    14.1,
+    13.3,
+    22.7,
+    19,
+    22,
+    18.8,
+    16.9,
+    17.5,
+    15.3,
+    12.5,
+    11.9,
+    11.4,
+    11.1,
+    10.9,
+    10.9,
+    10.7,
+    10.4,
+    10.7,
+    10.1,
+    11.9,
+    11.8,
+    11.2,
+    17.5,
+    17.8,
+    16,
+    11.7,
+    13.3,
+    10.6
+   ],
+   "start": {
+    "x": 3152,
+    "z": -6283,
+    "elevationM": 16.8,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -268,
+    "z": -3446,
+    "elevationM": 10.6,
+    "role": "下游端"
+   },
+   "dropM": 6.2,
+   "monotonicDescendingRatio": 0.658,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 16.8,
+    "elevationEndM": 10.6,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9314,
+    "distanceToBasinExitEndM": 5636,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 1,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "1 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-楼村水",
+   "name": "楼村水",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     2085,
+     -22.5
+    ],
+    [
+     2054.9,
+     -77.1
+    ],
+    [
+     2027.8,
+     -248.2
+    ],
+    [
+     2068.3,
+     -411.4
+    ],
+    [
+     2060,
+     -456.9
+    ],
+    [
+     1950.2,
+     -528.3
+    ],
+    [
+     1879.8,
+     -539.5
+    ],
+    [
+     1766.7,
+     -600.8
+    ],
+    [
+     1270.9,
+     -935.6
+    ],
+    [
+     1063,
+     -1176.9
+    ],
+    [
+     924.1,
+     -1214
+    ],
+    [
+     885.3,
+     -1240.1
+    ],
+    [
+     832.2,
+     -1392.9
+    ],
+    [
+     783.8,
+     -1457.8
+    ],
+    [
+     737.9,
+     -1481.1
+    ],
+    [
+     524.8,
+     -1502.7
+    ],
+    [
+     428.4,
+     -1544.5
+    ],
+    [
+     326.3,
+     -1685.9
+    ],
+    [
+     167.8,
+     -1858.3
+    ],
+    [
+     56.7,
+     -1943.2
+    ],
+    [
+     -11.5,
+     -1952
+    ],
+    [
+     -270.7,
+     -1896.1
+    ],
+    [
+     -480.5,
+     -1885.8
+    ],
+    [
+     -620.3,
+     -1841.4
+    ],
+    [
+     -686.9,
+     -1843.7
+    ],
+    [
+     -750.9,
+     -1863.7
+    ],
+    [
+     -947.6,
+     -2010.6
+    ],
+    [
+     -1029.1,
+     -2116.9
+    ],
+    [
+     -1101.1,
+     -2232.9
+    ],
+    [
+     -1285.3,
+     -2228.8
+    ],
+    [
+     -1805.8,
+     -2288.7
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    62,
+    236,
+    404,
+    450,
+    581,
+    652,
+    781,
+    1379,
+    1698,
+    1841,
+    1888,
+    2050,
+    2131,
+    2182,
+    2397,
+    2502,
+    2676,
+    2910,
+    3050,
+    3119,
+    3384,
+    3594,
+    3741,
+    3807,
+    3874,
+    4120,
+    4254,
+    4390,
+    4575,
+    5099
+   ],
+   "lengthM": 5099,
+   "elevationProfileM": [
+    24.4,
+    24,
+    23.6,
+    24.1,
+    24.1,
+    23.3,
+    22.8,
+    21.9,
+    20.2,
+    18.4,
+    18.9,
+    18.6,
+    16.9,
+    15.8,
+    15.8,
+    13.4,
+    10,
+    9.1,
+    9.7,
+    11.8,
+    8.9,
+    13.6,
+    13.2,
+    11.9,
+    11.5,
+    12.4,
+    11.8,
+    11,
+    10.4,
+    10.2,
+    7.9
+   ],
+   "start": {
+    "x": 2085,
+    "z": -22,
+    "elevationM": 24.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -1806,
+    "z": -2289,
+    "elevationM": 7.9,
+    "role": "下游端"
+   },
+   "dropM": 16.5,
+   "monotonicDescendingRatio": 0.8,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 24.4,
+    "elevationEndM": 7.9,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8898,
+    "distanceToBasinExitEndM": 4415,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 600,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "4 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-楼村水-1",
+   "name": "楼村水（分支 1）",
+   "kind": "branch",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     2085,
+     -22.5
+    ],
+    [
+     2054.9,
+     -77.1
+    ],
+    [
+     2027.8,
+     -248.2
+    ],
+    [
+     2068.3,
+     -411.4
+    ],
+    [
+     2060,
+     -456.9
+    ],
+    [
+     1950.2,
+     -528.3
+    ],
+    [
+     1879.8,
+     -539.5
+    ],
+    [
+     1766.7,
+     -600.8
+    ],
+    [
+     1513.4,
+     -583.3
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    62,
+    236,
+    404,
+    450,
+    581,
+    652,
+    781,
+    1035
+   ],
+   "lengthM": 1035,
+   "elevationProfileM": [
+    24.4,
+    24,
+    23.6,
+    24.1,
+    24.1,
+    23.3,
+    22.8,
+    21.9,
+    22.2
+   ],
+   "start": {
+    "x": 2085,
+    "z": -22,
+    "elevationM": 24.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": 1513,
+    "z": -583,
+    "elevationM": 22.2,
+    "role": "下游端"
+   },
+   "dropM": 2.2,
+   "monotonicDescendingRatio": 0.75,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 24.4,
+    "elevationEndM": 22.2,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 8898,
+    "distanceToBasinExitEndM": 8140,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 4,
+   "joinToleranceM": 600,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": "未接进最长路径的另 9 点一段（OSM 分段/并行支汊）"
+  },
+  {
+   "id": "subtributary-楼村水北支",
+   "name": "楼村水北支",
+   "kind": "subtributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     2784.5,
+     -632.8
+    ],
+    [
+     2723.5,
+     -644.3
+    ],
+    [
+     2628.3,
+     -617.7
+    ],
+    [
+     2523.1,
+     -635.2
+    ],
+    [
+     2299.8,
+     -760.6
+    ],
+    [
+     2252.7,
+     -861.4
+    ],
+    [
+     2188.2,
+     -940
+    ],
+    [
+     2075.2,
+     -991.1
+    ],
+    [
+     2031,
+     -1060.5
+    ],
+    [
+     1972,
+     -1077.4
+    ],
+    [
+     1881.8,
+     -1070.3
+    ],
+    [
+     1831.8,
+     -1087.5
+    ],
+    [
+     1754.3,
+     -1117.2
+    ],
+    [
+     1706.3,
+     -1133.3
+    ],
+    [
+     1623.9,
+     -1078.9
+    ],
+    [
+     1577.8,
+     -1126.7
+    ],
+    [
+     1576.7,
+     -1148.3
+    ],
+    [
+     1531.6,
+     -1178.3
+    ],
+    [
+     1447.1,
+     -1196.1
+    ],
+    [
+     1316.3,
+     -1191.8
+    ],
+    [
+     1216.2,
+     -1241.2
+    ],
+    [
+     1173.3,
+     -1254.5
+    ],
+    [
+     1047.3,
+     -1187
+    ],
+    [
+     1110,
+     -1243.4
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    62,
+    161,
+    268,
+    524,
+    635,
+    737,
+    861,
+    943,
+    1004,
+    1095,
+    1148,
+    1231,
+    1281,
+    1380,
+    1446,
+    1468,
+    1522,
+    1609,
+    1739,
+    1851,
+    1896,
+    2039,
+    2123
+   ],
+   "lengthM": 2123,
+   "elevationProfileM": [
+    27.4,
+    26.8,
+    25.9,
+    25.1,
+    23.9,
+    23.1,
+    20.2,
+    22.2,
+    22.7,
+    22.8,
+    22.2,
+    21.7,
+    21.1,
+    21.1,
+    19.5,
+    19.5,
+    19.5,
+    18.9,
+    18.2,
+    17.4,
+    17.2,
+    17.1,
+    18,
+    17.4
+   ],
+   "start": {
+    "x": 2785,
+    "z": -633,
+    "elevationM": 27.4,
+    "role": "上游端"
+   },
+   "end": {
+    "x": 1110,
+    "z": -1243,
+    "elevationM": 17.4,
+    "role": "下游端"
+   },
+   "dropM": 10,
+   "monotonicDescendingRatio": 0.826,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 27.4,
+    "elevationEndM": 17.4,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 9292,
+    "distanceToBasinExitEndM": 7510,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 5,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "5 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-大凼水",
+   "name": "大凼水",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -2666.8,
+     1831.4
+    ],
+    [
+     -2699.3,
+     1861.9
+    ],
+    [
+     -2779.7,
+     1877.6
+    ],
+    [
+     -2841.1,
+     1887.1
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    45,
+    126,
+    189
+   ],
+   "lengthM": 189,
+   "elevationProfileM": [
+    18.8,
+    19.2,
+    19.7,
+    20
+   ],
+   "start": {
+    "x": -2667,
+    "z": 1831,
+    "elevationM": 18.8,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -2841,
+    "z": 1887,
+    "elevationM": 20,
+    "role": "下游端"
+   },
+   "dropM": -1.2,
+   "monotonicDescendingRatio": 0,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 18.8,
+    "elevationEndM": 20,
+    "agreesWithElevation": false,
+    "distanceToBasinExitStartM": 6653,
+    "distanceToBasinExitEndM": 6620,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 2,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "2 段 OSM way 接成"
+  },
+  {
+   "id": "tributary-松岗河",
+   "name": "松岗河（光明段）",
+   "kind": "tributary",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     -6710.3,
+     -684.9
+    ],
+    [
+     -7231.6,
+     -942.1
+    ],
+    [
+     -7348.9,
+     -980.3
+    ],
+    [
+     -7384.2,
+     -975.2
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    581,
+    705,
+    740
+   ],
+   "lengthM": 740,
+   "elevationProfileM": [
+    6.8,
+    5.3,
+    5.1,
+    5.2
+   ],
+   "start": {
+    "x": -6710,
+    "z": -685,
+    "elevationM": 6.8,
+    "role": "上游端"
+   },
+   "end": {
+    "x": -7384,
+    "z": -975,
+    "elevationM": 5.2,
+    "role": "下游端"
+   },
+   "dropM": 1.6,
+   "monotonicDescendingRatio": 0.667,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 6.8,
+    "elevationEndM": 5.2,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 3414,
+    "distanceToBasinExitEndM": 3376,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 1,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "1 段 OSM way 接成"
+  },
+  {
+   "id": "drain-无名圳",
+   "name": "无名圳（无正式名称的沟渠）",
+   "kind": "drain",
+   "upstreamToDownstream": true,
+   "points": [
+    [
+     1186.9,
+     -3794.2
+    ],
+    [
+     1119.8,
+     -3844.3
+    ],
+    [
+     1126.4,
+     -3911.4
+    ],
+    [
+     1113.5,
+     -3957.5
+    ],
+    [
+     914.3,
+     -4083.6
+    ],
+    [
+     806.4,
+     -4116.2
+    ],
+    [
+     786.8,
+     -4137.6
+    ],
+    [
+     742.2,
+     -4224.8
+    ],
+    [
+     729.5,
+     -4295
+    ],
+    [
+     747.1,
+     -4371.7
+    ],
+    [
+     692.6,
+     -4424
+    ],
+    [
+     662.6,
+     -4504.7
+    ],
+    [
+     514,
+     -4624.4
+    ],
+    [
+     503,
+     -4660.7
+    ]
+   ],
+   "cumulativeM": [
+    0,
+    84,
+    151,
+    199,
+    435,
+    548,
+    577,
+    674,
+    746,
+    825,
+    900,
+    986,
+    1177,
+    1215
+   ],
+   "lengthM": 1215,
+   "elevationProfileM": [
+    13.9,
+    13.7,
+    13.2,
+    12.9,
+    12.2,
+    11.9,
+    11.6,
+    11,
+    10.7,
+    10.8,
+    10.5,
+    10.5,
+    10.5,
+    10.6
+   ],
+   "start": {
+    "x": 1187,
+    "z": -3794,
+    "elevationM": 13.9,
+    "role": "上游端"
+   },
+   "end": {
+    "x": 503,
+    "z": -4661,
+    "elevationM": 10.6,
+    "role": "下游端"
+   },
+   "dropM": 3.3,
+   "monotonicDescendingRatio": 0.846,
+   "orientMethod": "离全流域出海口（-5877,-3996）更远的一端为上游；海拔剖面作交叉验证（agreesWithElevation）",
+   "elevationEvidence": {
+    "elevationStartM": 13.9,
+    "elevationEndM": 10.6,
+    "agreesWithElevation": true,
+    "distanceToBasinExitStartM": 7067,
+    "distanceToBasinExitEndM": 6415,
+    "note": "方向按离全流域出海口的距离定（远者为上游）；agreesWithElevation=false 表示该段在 DEM 上反而略升（多是城区平缓 + DEM 噪声，落差通常 <1.5 m）"
+   },
+   "segmentCount": 1,
+   "joinToleranceM": 100,
+   "graphComponents": 1,
+   "source": "public/sandbox/sandbox.json 的 water.lines（OSM 河道，已投影到沙盘本地米制）；流向由 public/sandbox/flood/elevation.bin 的真实海拔判定",
+   "confidence": "high（几何来自 OSM 实测河道；流向由本区真实 DEM 判定，见 monotonicDescendingRatio）",
+   "sourceUrls": [
+    "https://www.openstreetmap.org/",
+    "https://www.szgm.gov.cn/"
+   ],
+   "note": null,
+   "mergedFrom": "1 段 OSM way 接成"
+  }
+ ]
+}

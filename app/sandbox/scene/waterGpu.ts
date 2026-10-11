@@ -103,8 +103,9 @@ export function upgradeWater(water: THREE.Group, data: SandboxData, bounds: { mi
   const baseColor = new THREE.Color("#7fc4d6");
   const base = uniform(baseColor).onFrameUpdate(() => (tintSource ? baseColor.copy(tintSource.color) : baseColor));
   const dayK = float(1).sub(nightUniform);
-  const shallow = mix(base, color("#b9c49a"), dayK.mul(0.35)).mul(1.06);
-  const deep = mix(mix(base, color("#22627e"), 0.75), color(nightStyle.water).mul(0.7), nightUniform.mul(0.6));
+  // 以原来的马卡龙水色为主：浅处就是原水色，深处只略往深青靠（不往泥土色混，否则河道发灰看不见）
+  const shallow = base.mul(1.04);
+  const deep = mix(mix(base, color("#2a7f96"), 0.4), color(nightStyle.water).mul(0.7), nightUniform.mul(0.6));
   const rim = mix(shallow, color("#f4f1e6"), dayK.mul(0.45));
   const make = (tier: unknown, mirror: boolean) => {
     const t = tier as ReturnType<typeof vec4>;
@@ -123,9 +124,11 @@ export function upgradeWater(water: THREE.Group, data: SandboxData, bounds: { mi
     return m;
   };
   const areaMaterial = make(attribute("aTier", "vec4"), true);
-  const riverMaterial = make(vec4(0.45, 0.35, 0.2, 0.0), false);
+  const riverMaterial = make(vec4(0.15, 0.2, 0.0, 0.0), false); // 河道：几乎不加深、倒影弱，保持清楚的青色线
   const materials: THREE.Material[] = [areaMaterial, riverMaterial];
-  for (const mesh of meshes) mesh.material = areaMeshes.includes(mesh) && mesh.geometry.getAttribute("aTier") ? areaMaterial : riverMaterial;
+  // 只有湖、塘、水库换成新水面；河道线保留原来鲜亮的马卡龙青色（微缩视角下河是一条清楚的线，倒影反而让它发灰看不见）
+  for (const mesh of areaMeshes) if (mesh.geometry.getAttribute("aTier")) mesh.material = areaMaterial;
+  void riverMaterial;
 
   return {
     reflection,
