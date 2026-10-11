@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { attribute, cameraProjectionMatrix, cameraViewMatrix, fract, instancedBufferAttribute, length, mix, normalize, sin, smoothstep, step, uniform, uv, vec2, vec3, vec4 } from "three/tsl";
+import { abs, float, fract, hash, instanceIndex, length, sin, smoothstep, step, uniform, uv, vec2, vec3 } from "three/tsl";
 import type { Look } from "./artPalette";
 
 /**
@@ -85,19 +85,6 @@ const RAIN_COUNT = 7000;
 const SNOW_COUNT = 9000;
 
 export function createWeather(scene: THREE.Scene) {
-  // 雨丝
-  const rand = new Float32Array(RAIN_COUNT * 2 * 3);
-  const end = new Float32Array(RAIN_COUNT * 2);
-  for (let i = 0; i < RAIN_COUNT; i += 1) {
-    const r = [Math.random(), Math.random(), Math.random()];
-    rand.set(r, i * 6);
-    rand.set(r, i * 6 + 3);
-    end[i * 2 + 1] = 1;
-  }
-  const rainGeometry = new THREE.BufferGeometry();
-  rainGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(RAIN_COUNT * 2 * 3), 3));
-  rainGeometry.setAttribute("aRand", new THREE.BufferAttribute(rand, 3));
-  rainGeometry.setAttribute("aEnd", new THREE.BufferAttribute(end, 1));
   const rainUniforms = {
     uCenter: uniform(new THREE.Vector3()),
     uSize: uniform(1000),
@@ -107,60 +94,34 @@ export function createWeather(scene: THREE.Scene) {
     uOpacity: uniform(0.42),
     uColor: uniform(new THREE.Color("#c9d6ea")),
   };
-  // 雨丝：一条条线段，位置全在着色器里按时间下落、循环
-  const rainMaterial = new THREE.LineBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false });
-  {
+  // 雨丝和雪花（照搬 WebGPU MVP）：实例化的小面片，位置、下落、摆动全在着色器里算
+  const fall = (count: number, o: { speed: number; sway: number; w: number; h: number; level: ReturnType<typeof uniform>; color: ReturnType<typeof uniform>; opacity: ReturnType<typeof uniform>; round: boolean; tilt: number }) => {
     const u = rainUniforms;
-    const r = attribute("aRand", "vec3");
-    const e = attribute("aEnd", "float");
+    const m = new THREE.SpriteNodeMaterial({ transparent: true, depthWrite: false, fog: false });
+    const r = (k: number) => hash(instanceIndex.add(k * 7919));
+    const r1 = r(1), r2 = r(2), r3 = r(3), r4 = r(4);
     const height = u.uSize.mul(0.9);
-    const dir = normalize(vec3(u.uWind.x, -1.0, u.uWind.y));
-    const y = fract(r.y.sub(u.uTime.mul(r.x.mul(0.3).add(0.9)))).mul(height);
-    // 线段尾端：沿雨的方向往回拉一段，形成雨丝
-    const p = u.uCenter.add(vec3(r.x.sub(0.5).mul(u.uSize), y.sub(height.mul(0.5)), r.z.sub(0.5).mul(u.uSize))).sub(dir.mul(u.uSize.mul(0.035)).mul(e));
-    rainMaterial.vertexNode = cameraProjectionMatrix.mul(cameraViewMatrix).mul(vec4(p, 1.0));
-    const alpha = step(fract(r.x.mul(91.37).add(r.z.mul(17.1))), u.uLevel).mul(e.mul(0.85).oneMinus());
-    rainMaterial.colorNode = u.uColor;
-    rainMaterial.opacityNode = alpha.mul(u.uOpacity);
-    rainMaterial.alphaTest = 0.003;
-  }
-  const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
-  rain.frustumCulled = false;
-  rain.renderOrder = 6;
-  rain.visible = false;
-  scene.add(rain);
-
-  // 雪花：WebGPU 不支持大于 1 像素的点，用实例化的小方片（固定屏幕像素大小），位置在着色器里飘落
-  const snowRand = new Float32Array(SNOW_COUNT * 3);
-  for (let i = 0; i < snowRand.length; i += 1) snowRand[i] = Math.random();
-  const snowUniforms = {
-    uCenter: rainUniforms.uCenter,
-    uSize: rainUniforms.uSize,
-    uTime: rainUniforms.uTime,
-    uLevel: uniform(0),
-    uOpacity: uniform(0.9),
-    uColor: uniform(new THREE.Color("#f4f7fb")),
+    const y = fract(r2.sub(u.uTime.mul(o.speed).mul(r1.mul(0.3).add(0.85)))).mul(height).sub(height.mul(0.5));
+    const sway = sin(u.uTime.mul(r3.add(0.6)).add(r1.mul(6.283))).mul(u.uSize).mul(o.sway);
+    m.positionNode = u.uCenter.add(vec3(r1.sub(0.5).mul(u.uSize).add(sway), y, r3.sub(0.5).mul(u.uSize).add(sway.mul(0.6))));
+    m.scaleNode = vec2(u.uSize.mul(o.w), u.uSize.mul(o.h));
+    m.rotationNode = float(o.tilt);
+    const shape = o.round ? smoothstep(0.5, 0.15, length(uv().sub(0.5))) : smoothstep(0.5, 0.0, abs(uv().x.sub(0.5)));
+    m.colorNode = o.color as never;
+    m.opacityNode = step(r4, o.level as never).mul(shape).mul(o.opacity as never); // 强度决定有多少雨丝 / 雪花出现
+    const sprite = new THREE.Sprite(m);
+    sprite.count = count;
+    sprite.frustumCulled = false;
+    sprite.renderOrder = 6;
+    sprite.visible = false;
+    scene.add(sprite);
+    return { sprite, material: m };
   };
-  const snowMaterial = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, fog: false, sizeAttenuation: false });
-  {
-    const u = snowUniforms;
-    const r = (instancedBufferAttribute(new THREE.InstancedBufferAttribute(snowRand, 3), "vec3") as unknown as ReturnType<typeof vec3>);
-    const height = u.uSize.mul(0.9);
-    const y = fract(r.y.sub(u.uTime.mul(r.x.mul(0.04).add(0.05)))).mul(height);
-    const sway = sin(u.uTime.mul(r.z.add(0.6)).add(r.x.mul(6.283))).mul(u.uSize).mul(0.012);
-    snowMaterial.positionNode = u.uCenter.add(vec3(r.x.sub(0.5).mul(u.uSize).add(sway), y.sub(height.mul(0.5)), r.z.sub(0.5).mul(u.uSize).add(sway.mul(0.6))));
-    snowMaterial.sizeNode = mix(1.6, 3.6, fract(r.y.mul(13.7)));
-    const alpha = step(fract(r.x.mul(91.37).add(r.z.mul(17.1))), u.uLevel);
-    snowMaterial.colorNode = u.uColor;
-    snowMaterial.opacityNode = smoothstep(0.5, 0.2, length(uv().sub(vec2(0.5)))).mul(alpha).mul(u.uOpacity);
-    snowMaterial.alphaTest = 0.01;
-  }
-  const snowflakes = new THREE.Sprite(snowMaterial);
-  snowflakes.count = SNOW_COUNT;
-  snowflakes.frustumCulled = false;
-  snowflakes.renderOrder = 6;
-  snowflakes.visible = false;
-  scene.add(snowflakes);
+  const snowUniforms = { uLevel: uniform(0), uOpacity: uniform(0.9), uColor: uniform(new THREE.Color("#f4f7fb")) };
+  const rainParts = fall(RAIN_COUNT, { speed: 0.9, sway: 0, w: 0.0005, h: 0.03, level: rainUniforms.uLevel, color: rainUniforms.uColor, opacity: rainUniforms.uOpacity, round: false, tilt: 0.12 });
+  const snowParts = fall(SNOW_COUNT, { speed: 0.06, sway: 0.012, w: 0.0035, h: 0.0035, level: snowUniforms.uLevel, color: snowUniforms.uColor, opacity: snowUniforms.uOpacity, round: true, tilt: 0 });
+  const rain = rainParts.sprite;
+  const snowflakes = snowParts.sprite;
 
   // 闪电：从云层到地面的一道折线，只在闪的那一瞬间可见
   const boltPoints = 16;
@@ -268,6 +229,6 @@ export function createWeather(scene: THREE.Scene) {
       rainUniforms.uColor.value.setRGB(0.79, 0.84, 0.92).multiplyScalar(0.25 + 0.75 * k);
       snowUniforms.uColor.value.setRGB(0.96, 0.97, 0.98).multiplyScalar(0.12 + 0.88 * k);
     },
-    dispose: () => { snowMaterial.dispose(); rainGeometry.dispose(); rainMaterial.dispose(); boltGeometry.dispose(); boltMaterial.dispose(); },
+    dispose: () => { snowParts.material.dispose(); rainParts.material.dispose(); boltGeometry.dispose(); boltMaterial.dispose(); },
   };
 }
