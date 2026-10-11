@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { abs, clamp, exp, float, Fn, max, mix, pass, screenCoordinate, smoothstep, texture, texture3D, time, uniform, vec2, vec3 } from "three/tsl";
+import { abs, clamp, exp, float, floor, Fn, fract, instancedArray, instanceIndex, int, max, mix, pass, screenCoordinate, select, smoothstep, texture, texture3D, time, uniform, vec2, vec3 } from "three/tsl";
 import { ImprovedNoise } from "three/examples/jsm/math/ImprovedNoise.js";
 import { bayer16 } from "three/examples/jsm/tsl/math/Bayer.js";
 import { gaussianBlur } from "three/examples/jsm/tsl/display/GaussianBlurNode.js";
@@ -67,15 +67,71 @@ function buildFogMaps(terrain: Terrain, data: SandboxData) {
     t.needsUpdate = true;
     return t;
   };
-  return { groundTex: tex(ground), sourceTex: tex(source), offset: new THREE.Vector2(minX, minZ), scale: new THREE.Vector2(1 / w, 1 / h) };
+  // 风场（风吹雾用）：夏季西南风从西边山口吹进来；遇到上坡减速、把上坡分量削掉，于是绕山、顺河谷走
+  const cell = Math.max(w, h) / MAP;
+  const base = new THREE.Vector2(1, -0.35).normalize(); // +x 东、−z 北：从西南往东北
+  const velocity = new Float32Array(MAP * MAP * 2);
+  for (let j = 0; j < MAP; j += 1) for (let i = 0; i < MAP; i += 1) {
+    const k = j * MAP + i;
+    const gx = (ground[j * MAP + Math.min(MAP - 1, i + 1)] - ground[j * MAP + Math.max(0, i - 1)]) / (2 * cell);
+    const gz = (ground[Math.min(MAP - 1, j + 1) * MAP + i] - ground[Math.max(0, j - 1) * MAP + i]) / (2 * cell);
+    let vx = base.x, vz = base.y;
+    const g2 = gx * gx + gz * gz, up = vx * gx + vz * gz;
+    if (up > 0 && g2 > 1e-8) { const k2 = Math.min(1, Math.sqrt(g2) * 25); vx -= (gx * up / g2) * k2; vz -= (gz * up / g2) * k2; }
+    // 高处风弱一点（风贴着谷底走），上坡更慢
+    const slow = 1 / (1 + Math.max(0, up) * 40) * THREE.MathUtils.clamp(1 - Math.max(0, ground[k] - meanGround[k]) / 150, 0.35, 1);
+    velocity[k * 2] = vx * slow; velocity[k * 2 + 1] = vz * slow;
+  }
+  return { groundTex: tex(ground), sourceTex: tex(source), source, velocity, cell, offset: new THREE.Vector2(minX, minZ), scale: new THREE.Vector2(1 / w, 1 / h) };
 }
 
-export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneDepth: unknown, baseY: number, terrain: Terrain, data: SandboxData) {
+export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneDepth: unknown, baseY: number, terrain: Terrain, data: SandboxData, renderer: THREE.WebGPURenderer) {
   const u = weatherShadingUniforms;
   const center = uniform(new THREE.Vector2());
   const half = uniform(3000);
   const maps = buildFogMaps(terrain, data);
   const mapOffset = uniform(maps.offset), mapScale = uniform(maps.scale);
+
+  // ---- 风吹雾（计算着色器）：一张 256² 的"雾量场"每帧被风场平流，上风处吹进来的是干净空气；
+  // 没风时按雾源图慢慢长回来。体积雾的浓度乘这张场，所以雾会被风从山口一路推开、在山后留住 ----
+  const N = MAP * MAP;
+  const fieldA = instancedArray(new Float32Array(maps.source), "float");
+  const fieldB = instancedArray(new Float32Array(maps.source), "float");
+  const sourceBuf = instancedArray(new Float32Array(maps.source), "float");
+  const velocityBuf = instancedArray(maps.velocity, "vec2");
+  const uWind = uniform(0); // 0 无风，1 满风
+  const uFill = uniform(0); // 讲解时先把整个盆地灌满雾（雾量至少到这个值），再让风吹开
+  const uDt = uniform(0.016);
+  const uSpeed = uniform(6000 / maps.cell); // 每秒走多少格（讲解用，比真实风快得多：约 6 秒吹过半个盆地）
+  type Buf = { element: (i: never) => unknown };
+  const fetch = (buf: Buf, i: unknown, j: unknown) => {
+    const ii = int(i as never), jj = int(j as never);
+    const inside = ii.greaterThanEqual(0).and(ii.lessThan(MAP)).and(jj.greaterThanEqual(0)).and(jj.lessThan(MAP));
+    // 网格外：有风时是吹进来的干净空气（0），没风时按边缘值延续
+    return select(inside, buf.element(clamp(jj as never, 0, MAP - 1).mul(MAP).add(clamp(ii as never, 0, MAP - 1)) as never) as never, float(0)) as unknown as ReturnType<typeof float>;
+  };
+  const bilinear = (buf: Buf, p: ReturnType<typeof vec2>) => {
+    const p0 = floor(p), f = fract(p);
+    const a = fetch(buf, p0.x, p0.y), b = fetch(buf, p0.x.add(1), p0.y), c = fetch(buf, p0.x, p0.y.add(1)), d = fetch(buf, p0.x.add(1), p0.y.add(1));
+    return mix(mix(a, b, f.x) as never, mix(c, d, f.x) as never, f.y) as unknown as ReturnType<typeof float>;
+  };
+  const step = (from: Buf, to: { element: (i: never) => { assign: (v: never) => void } }) => Fn(() => {
+    const i = instanceIndex.mod(MAP), j = instanceIndex.div(MAP);
+    const v = velocityBuf.element(instanceIndex);
+    const back = vec2(float(i), float(j)).sub(v.mul(uSpeed.mul(uWind).mul(uDt)));
+    const carried = bilinear(from, back as never);
+    const src = max(sourceBuf.element(instanceIndex) as never, uFill);
+    // 没风时 2 秒左右长回来；有风时几乎不长，雾被一路吹走
+    const regen = mix(float(0.6), float(0), uWind);
+    to.element(instanceIndex as never).assign(carried.add((src as unknown as ReturnType<typeof float>).sub(carried).mul(regen.mul(uDt)).clamp(-1, 1)).max(0) as never);
+  })().compute(N);
+  const stepAB = step(fieldA as never, fieldB as never), stepBA = step(fieldB as never, fieldA as never);
+  let flip = false;
+  // 体积雾里读当前场（双线性，世界坐标 → 格）
+  const fieldAt = (p: unknown) => {
+    const g = (p as ReturnType<typeof vec2>).sub(mapOffset).mul(mapScale).mul(MAP).sub(0.5);
+    return bilinear(fieldA as never, g as never);
+  };
 
   // 96³ 的 3D 噪声（两层 Perlin 叠加），循环平铺
   const noise = (() => {
@@ -101,7 +157,7 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
     const n2 = texture3D(noise, p.add(wind.mul(1.7)).div(520.0).mod(1.0), 0).r;
     const uv = p.xz.sub(mapOffset).mul(mapScale);
     const ground = texture(maps.groundTex, uv).r;
-    const source = texture(maps.sourceTex, uv).r;
+    const source = fieldAt(p.xz); // 风吹过后的雾源（没风时就等于雾源图）
     const layer = max(u.uGFHeight.mul(1.6), 90);
     // 贴着本地地面的雾（沿山坡、河谷走）+ 沉在盆地底部的雾
     const above = max(p.y.sub(ground), 0);
@@ -168,12 +224,26 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
   /** 0–0.95：画面上这一点被雾遮住多少 */
   const veil = clamp(float(1).sub(exp(fogBlur.r.negate())), 0, 0.95);
   /** 合成：按雾的浓度把画面混向雾色，再加上被太阳照亮的那部分 */
+  let windTarget = 0;
+  let forced = 0;
   const apply = (c: unknown) => mix(c as ReturnType<typeof vec3>, u.uGFColor, veil).add(sunBlur.rgb);
 
   return {
     apply,
+    /** 风吹雾：on = 起风（从西边山口吹进来）；off = 风停，雾慢慢长回来 */
+    setWind: (on: boolean) => { windTarget = on ? 1 : 0; },
+    /** 讲解时强制起雾（0 = 不强制，按时间表和天气） */
+    forceFog: (amount: number) => { forced = amount; uFill.value = amount > 0 ? 1 : 0; },
+    debug: () => ({ forced, wind: uWind.value, amount: u.uGFAmount.value, height: u.uGFHeight.value, half: half.value }),
     /** 雾体跟着镜头焦点走；太阳照雾按当天配色（清晨、黄昏逆光最强，夜里没有） */
-    update: (target: THREE.Vector3, cameraDistance: number, maxHalf: number, sun: { dir: THREE.Vector3; color: THREE.Color; up: number; glow: number; morning: number }) => {
+    update: (target: THREE.Vector3, cameraDistance: number, maxHalf: number, sun: { dir: THREE.Vector3; color: THREE.Color; up: number; glow: number; morning: number }, delta = 0.016) => {
+      // 风吹雾：风慢慢起、慢慢停；场每帧平流一次（A→B 后再 B→A，保证读的总是 A）
+      uWind.value += THREE.MathUtils.clamp(windTarget - uWind.value, -delta / 2, delta / 2);
+      uDt.value = Math.min(delta, 0.05) / 2;
+      renderer.compute(stepAB);
+      renderer.compute(stepBA);
+      flip = !flip;
+      if (forced > 0) { u.uGFAmount.value = Math.max(u.uGFAmount.value, forced); u.uGFHeight.value = Math.max(u.uGFHeight.value, 220); } // 讲解多是俯视，雾层要厚，视线才穿得过足够多的雾
       const h = THREE.MathUtils.clamp(cameraDistance * 1.2, 2500, maxHalf);
       half.value = h;
       center.value.set(target.x, target.z);

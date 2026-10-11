@@ -414,7 +414,7 @@ const express = isGM
   const aoMask = float(1).sub(smoothstep(18000, 32000, viewZ.negate()));
   const aoLit = sceneColor.rgb.mul(mix(float(1), aoTerm, uAO.mul(aoMask)));
   // 体积雾（晨雾、雾天、雨雪天）：按雾的浓度把画面混向雾色
-  const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z), terrain, data);
+  const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z), terrain, data, renderer);
   const lit = volumeFog.apply(aoLit);
   // 移轴：离焦点线（画面 52% 高度处）越远越糊。原来的水平 + 竖直移轴在画面最边缘也只糊约 3 像素，这里保持同样的轻度
   const uTilt = uniform(1);
@@ -722,7 +722,12 @@ const express = isGM
   let activeAnim: StoryAnim | null = null;
   let animTime = 0;
   let animTimer = 0;
+  let windTimer = 0;
   const stopAnim = () => {
+    // 风吹雾只属于「风从口子进来」这一拍：离开时风停、不再强制起雾
+    window.clearTimeout(windTimer);
+    volumeFog.setWind(false);
+    volumeFog.forceFog(0);
     if (!activeAnim) return;
     scene.remove(activeAnim.group);
     activeAnim.dispose();
@@ -735,6 +740,11 @@ const express = isGM
     animTime = 0;
     animTimer = 1;
     activeAnim.seek(0);
+    if (name === "wind") {
+      // 先让盆地被雾盖住，约 2.5 秒后西南风从西边山口吹进来，沿河谷把雾吹开，露出风廊上的城区
+      volumeFog.forceFog(6);
+      windTimer = window.setTimeout(() => volumeFog.setWind(true), 3500);
+    }
   };
   const updateAnim = (delta: number) => {
     if (!activeAnim) return;
@@ -1267,7 +1277,7 @@ const express = isGM
     {
       const fl = atmosphere.fogLight();
       volumeFog.update(controls.target, distance, Math.max(terrain.extent.maxX - terrain.extent.minX, terrain.extent.maxZ - terrain.extent.minZ) * 0.6,
-        { dir: fogSunDir.copy(sun.position).sub(controls.target).normalize(), color: sun.color, up: fl.look.sunUp, glow: fl.look.glow, morning: fl.morning });
+        { dir: fogSunDir.copy(sun.position).sub(controls.target).normalize(), color: sun.color, up: fl.look.sunUp, glow: fl.look.glow, morning: fl.morning }, delta);
     }
     updateNightEffects();
     for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength;
