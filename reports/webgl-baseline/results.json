@@ -1,0 +1,100 @@
+[
+  {
+    "name": "01-光明-白天",
+    "ran": "ok",
+    "fps": 30.3,
+    "worstFrameMs": 53.3,
+    "webgpu": true
+  },
+  {
+    "name": "02-光明-夜晚",
+    "ran": "ok",
+    "fps": 31.4,
+    "worstFrameMs": 53.4,
+    "webgpu": true
+  },
+  {
+    "name": "03-光影-日出",
+    "ran": "ok",
+    "fps": 30.8,
+    "worstFrameMs": 52.3,
+    "webgpu": true
+  },
+  {
+    "name": "04-光影-正午",
+    "ran": "ok",
+    "fps": 33.1,
+    "worstFrameMs": 37,
+    "webgpu": true
+  },
+  {
+    "name": "05-光影-黄金时刻",
+    "ran": "ok",
+    "fps": 32.9,
+    "worstFrameMs": 34.2,
+    "webgpu": true
+  },
+  {
+    "name": "06-光影-蓝调",
+    "ran": "ok",
+    "fps": 30.9,
+    "worstFrameMs": 52.3,
+    "webgpu": true
+  },
+  {
+    "name": "07-光影-深夜",
+    "ran": "ok",
+    "fps": 31,
+    "worstFrameMs": 51.3,
+    "webgpu": true
+  },
+  {
+    "name": "08-光影-雨-黄金时刻",
+    "ran": "ok",
+    "fps": 30.7,
+    "worstFrameMs": 52.2,
+    "webgpu": true
+  },
+  {
+    "name": "09-光影-雪-正午",
+    "ran": "ok",
+    "fps": 32.3,
+    "worstFrameMs": 51.8,
+    "webgpu": true
+  },
+  {
+    "name": "10-光影-雾-日出",
+    "ran": "ok",
+    "fps": 32.6,
+    "worstFrameMs": 66.7,
+    "webgpu": true
+  },
+  {
+    "name": "11-天际线-蓝调",
+    "ran": "ok",
+    "fps": 12.5,
+    "worstFrameMs": 8459.6,
+    "webgpu": true
+  },
+  {
+    "name": "12-前海-白天",
+    "ran": "ok",
+    "fps": 55.1,
+    "worstFrameMs": 35.4,
+    "webgpu": true
+  },
+  {
+    "name": "13-南山-白天",
+    "ran": "ok",
+    "fps": 46.3,
+    "worstFrameMs": 29.5,
+    "webgpu": true
+  },
+  {
+    "name": "14-宝安-白天",
+    "ran": "ok",
+    "fps": 53.2,
+    "worstFrameMs": 37.8,
+    "webgpu": true
+  }
+]

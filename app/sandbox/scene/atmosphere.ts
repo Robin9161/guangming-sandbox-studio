@@ -241,9 +241,32 @@ export function createAtmosphere(refs: Refs) {
   let dayFog = 0.85;
   const gfU = weatherShadingUniforms;
   const randomMood = () => 1 + Math.floor(Math.random() * (MOODS.length - 1));
+  // 正午 = 原来的「白天」马卡龙风格：10:30–14:00 整段用经典白天的天色、阳光、天光、无调色、无远雾，
+  // 前后各约一小时渐入渐出。先混配色再叠天气，所以下雨的正午照样变灰。
+  const classic = {
+    top: new THREE.Color(sky.top), bottom: new THREE.Color(sky.bottom), mid: new THREE.Color(sky.top).lerp(new THREE.Color(sky.bottom), 0.5),
+    sun: c.sun[0].clone(), hemiSky: c.hemiSky[0].clone(), hemiGround: c.hemiGround[0].clone(),
+  };
+  const classicSunDir = legacySunPosition.clone().sub(refs.center).normalize();
+  let macaron = 0; // 当前正午马卡龙的权重（含天气折减），fogBase 用
+  const applyClassicNoon = () => {
+    const m = THREE.MathUtils.smoothstep(hour, 9.5, 10.5) * (1 - THREE.MathUtils.smoothstep(hour, 14, 15.2));
+    if (m <= 0) return 0;
+    const k = look.colors;
+    k.top.lerp(classic.top, m); k.mid.lerp(classic.mid, m); k.horizon.lerp(classic.bottom, m); k.fog.lerp(classic.bottom, m);
+    k.sun.lerp(classic.sun, m); k.sky.lerp(classic.hemiSky, m); k.ground.lerp(classic.hemiGround, m);
+    look.sunI += (3.1 - look.sunI) * m;
+    look.hemiI += (1.5 - look.hemiI) * m;
+    look.grade *= 1 - m;
+    look.sat += (1 - look.sat) * m;
+    look.sunDir.lerp(classicSunDir, m).normalize();
+    return m;
+  };
   const applyArt = () => {
     evalLook(hour, moodChoice ?? moodAuto, look);
+    const noon = applyClassicNoon();
     applyWeatherToLook(look);
+    macaron = noon * (weatherState.kind === "clear" ? 1 : 1 - weatherState.level);
     const k = look.colors;
     domeU.uTop.value.copy(k.top);
     domeU.uMid.value.copy(k.mid);
@@ -267,14 +290,14 @@ export function createAtmosphere(refs: Refs) {
     refs.bloom.strength = bloomStrength;
     refs.vignette.uniforms.darkness.value = THREE.MathUtils.lerp(0.9, 1.25, look.night);
     refs.clouds.emissiveIntensity = 0.18 * (1 - look.night);
-    refs.clouds.color.copy(white).lerp(k.horizon, 0.35).lerp(cloudNight, look.night * 0.8);
+    refs.clouds.color.copy(white).lerp(k.horizon, 0.35 * (1 - macaron)).lerp(cloudNight, look.night * 0.8);
     // 阴雨天的云：变灰变暗（雷暴最暗），云底不再发亮
     if (weatherState.kind !== "clear") {
       const storm = weatherState.kind === "storm", rainy = storm || weatherState.kind === "rain";
       refs.clouds.color.lerp(cloudGray.set(storm ? "#3e4450" : rainy ? "#7a828e" : "#b8bec8").multiplyScalar(1 - 0.75 * look.night), weatherState.level * 0.85);
       refs.clouds.emissiveIntensity *= 1 - weatherState.level;
     }
-    for (const item of tinted) item.material.color.copy(waterDay).lerp(k.horizon, 0.3).lerp(waterNight, look.night);
+    for (const item of tinted) item.material.color.copy(waterDay).lerp(k.horizon, 0.3 * (1 - macaron)).lerp(waterNight, look.night);
     starMaterial.opacity = Math.max(0, look.night * 1.2 - 0.2);
     stars.visible = look.night > 0.05;
     nightUniform.value = look.night;
@@ -324,7 +347,9 @@ export function createAtmosphere(refs: Refs) {
       if (!art) return { near: 70000, far: 160000 };
       // 夜里雾从更远处起：近处的楼保持清晰，只让远景溶进夜空
       const k = 1 + 0.8 * look.night;
-      return { near: (cameraDistance * 1.0 * k) / haze + 1500 * look.night, far: (cameraDistance * 4.2 * k) / haze + 8000 };
+      const near = (cameraDistance * 1.0 * k) / haze + 1500 * look.night, far = (cameraDistance * 4.2 * k) / haze + 8000;
+      // 正午马卡龙：远雾退回经典白天的 70–160 km（几乎无雾）
+      return { near: THREE.MathUtils.lerp(near, 70000, macaron), far: THREE.MathUtils.lerp(far, 160000, macaron) };
     },
     followCamera: (position: THREE.Vector3) => { dome.position.copy(position); },
     setNight: (on: boolean) => { target = on ? 1 : 0; },
