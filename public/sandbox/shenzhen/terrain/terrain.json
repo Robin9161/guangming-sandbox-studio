@@ -1,0 +1,181 @@
+{
+  "x0": -23550,
+  "z0": -15450,
+  "nx": 672,
+  "nz": 373,
+  "spacing": 150,
+  "scale": 0.1,
+  "hole": {
+    "x0": -10920,
+    "z0": -11400,
+    "x1": 10920,
+    "z1": 11400
+  },
+  "source": "AWS Terrain Tiles（Terrarium z13，SRTM 系，约 30 m）双线性采样到 150 m 网格；原始海拔，未压水库、未平滑城区；海陆由 sea.bin 掩膜给出（与画幅边缘连通的低洼才是海）",
+  "generated": "2026-10-10T15:59:43.240Z",
+  "grid": {
+    "nx": 672,
+    "nz": 373,
+    "spacing": 150,
+    "cells": 250656,
+    "widthM": 100650,
+    "depthM": 55800
+  },
+  "bbox": {
+    "west": 113.7,
+    "east": 114.68,
+    "south": 22.4,
+    "north": 22.9
+  },
+  "holeNote": "hole = public/sandbox/sandbox.json meta.dem 的矩形（光明区主地形所在范围），前端在此挖空",
+  "missing": 0,
+  "sea": {
+    "file": "sea.bin",
+    "bytes": 250656,
+    "format": "Uint8，行优先 k = j * nx + i（与 dem.bin 同网格）：1 = 海、0 = 陆地",
+    "rule": "1 仅当该格 h ≤ 0.5 m 且与画幅边缘的 h ≤ 0.5 m 格子四连通；内陆 h ≤ 0.5 m 的格子是陆地",
+    "usage": "前端只按这个掩膜判定海面：1 → 压平到 y = -2 并用海色；0 → 当陆地，height = exaggerate(max(0, h))，颜色用色阶里最低的陆地色。不要再用 h ≤ 0.5 判定海面，否则沿岸城区（宝安/南山/福田/前海）会出现蓝色斑点。"
+  },
+  "seaCells": 68495,
+  "inlandLowCells": 3440,
+  "waterCells": 71935,
+  "highest": {
+    "elevationM": 920.5,
+    "lng": 114.215417,
+    "lat": 22.581389,
+    "x": 29400,
+    "z": 20100,
+    "cell": 159617,
+    "in": "深圳市界内",
+    "note": "梧桐山一带（实测 943.7 m）"
+  },
+  "frameHighest": {
+    "elevationM": 978.1,
+    "lng": 114.253411,
+    "lat": 22.896751,
+    "x": 33300,
+    "z": -15000,
+    "cell": 2395,
+    "in": "本画幅内"
+  },
+  "peaks": [
+    {
+      "name": "梧桐山（深圳，实测 943.7 m）",
+      "elevationM": 920.5,
+      "lng": 114.215417,
+      "lat": 22.581389
+    },
+    {
+      "name": "七娘山（深圳，实测 869 m）",
+      "elevationM": 850.9,
+      "lng": 114.545666,
+      "lat": 22.528759
+    },
+    {
+      "name": "排牙山（深圳，实测 707 m）",
+      "elevationM": 711.5,
+      "lng": 114.269485,
+      "lat": 22.617814
+    },
+    {
+      "name": "羊台山（深圳，实测 587 m）",
+      "elevationM": 556.1,
+      "lng": 113.95531,
+      "lat": 22.655578
+    },
+    {
+      "name": "塘朗山（深圳，实测 430 m）",
+      "elevationM": 409.7,
+      "lng": 113.981613,
+      "lat": 22.575992
+    },
+    {
+      "name": "凤凰山（深圳，实测 376 m）",
+      "elevationM": 352.6,
+      "lng": 113.847175,
+      "lat": 22.667714
+    },
+    {
+      "name": "大帽山（香港，实测 957 m）",
+      "elevationM": 942,
+      "lng": 114.123357,
+      "lat": 22.411279
+    },
+    {
+      "name": "白云嶂（惠州/东莞，OSM 标 1003.5 m）",
+      "elevationM": 978.1,
+      "lng": 114.253411,
+      "lat": 22.896751
+    }
+  ],
+  "coastCheck": {
+    "available": true,
+    "method": "DEM 岸线取两级掩膜的陆/水边界格：seaMask（sea.bin，与画幅边缘连通且 h ≤ 0.5 m，前端唯一的海面判据）与 thresholdMask（h ≤ 0.5 m，仅作对照）；OSM 海岸线取 shenzhen-context.json 的 water[kind=coastline]（natural=coastline，40 m 简化）的线段。反向距离用 8 邻域 chamfer 距离场，取双线性。",
+    "osmCoastline": {
+      "segments": 6190,
+      "verticesInFrame": 6945,
+      "northLatitude": 22.779,
+      "note": "OSM 海岸线只画到画幅北侧约 22.78°N；本画幅 22.78 以北（东莞/惠州内河与狮子洋）没有对应的 OSM 岸线段。"
+    },
+    "osmToDemShore": {
+      "vertices": 6945,
+      "medianM": 34.6,
+      "meanM": 182.3,
+      "p90M": 326.1,
+      "p99M": 1922.2
+    },
+    "demShoreToOsm": {
+      "seaMask": {
+        "cells": 10393,
+        "medianM": 180.5,
+        "meanM": 429.7,
+        "p75M": 385.5,
+        "p90M": 1221.5,
+        "over1kmPct": 11.8
+      },
+      "thresholdMask": {
+        "cells": 19205,
+        "medianM": 545.7,
+        "meanM": 1972.6,
+        "p75M": 2741.9,
+        "p90M": 6307,
+        "over1kmPct": 43.6
+      }
+    },
+    "offsetHotspots": [
+      {
+        "gridLngLat": "113.7,22.7",
+        "cells": 2542
+      },
+      {
+        "gridLngLat": "113.8,22.7",
+        "cells": 1296
+      },
+      {
+        "gridLngLat": "114.0,22.4",
+        "cells": 921
+      },
+      {
+        "gridLngLat": "113.8,22.6",
+        "cells": 654
+      },
+      {
+        "gridLngLat": "114.0,22.5",
+        "cells": 612
+      },
+      {
+        "gridLngLat": "113.9,22.5",
+        "cells": 607
+      },
+      {
+        "gridLngLat": "113.8,22.5",
+        "cells": 455
+      },
+      {
+        "gridLngLat": "113.7,22.8",
+        "cells": 446
+      }
+    ],
+    "caveat": "150 m 网格本身就有半格（约 75 m）量化误差；珠江口、深圳湾的滩涂与填海区，SRTM（2000 年）的 0.5 m 等高线与 OSM 测绘岸线本来就差数百米到数公里，反向偏差几乎全部集中在那里。"
+  }
+}

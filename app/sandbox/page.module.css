@@ -1,0 +1,245 @@
+.page {
+  --cream: #fffaf1;
+  --ink: #3d4a5c;
+  --muted: #7d8794;
+  --accent: #f2a38a;
+  --mint: #9ed8c8;
+  --line: rgba(61, 74, 92, 0.1);
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #cfeaf9;
+  color: var(--ink);
+  font-family: "Nunito", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.canvas { position: absolute; inset: 0; z-index: 0; isolation: isolate; }
+.canvas canvas { display: block; width: 100%; height: 100%; }
+
+.header { position: absolute; z-index: 2; top: 24px; left: 28px; pointer-events: none; }
+.header h1 { margin: 6px 0 0; font-size: clamp(24px, 3vw, 38px); font-weight: 800; letter-spacing: -0.02em; color: #2f3b4c; text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7); }
+.kicker { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 0.22em; color: #e07f63; }
+
+.panel {
+  position: absolute;
+  z-index: 3;
+  top: 24px;
+  right: 24px;
+  width: 268px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--cream);
+  box-shadow: 0 6px 0 rgba(61, 74, 92, 0.08), 0 18px 40px rgba(61, 74, 92, 0.14);
+}
+.panelHeader { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 15px; }
+.status { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #fdeccc; color: #b7791f; }
+.status[data-state="ready"] { background: #dff3ea; color: #2f8a68; }
+.status[data-state="error"] { background: #fbe0dc; color: #c0473a; }
+
+.dayNight { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; padding: 4px; border-radius: 16px; background: #f3ecdf; }
+.dayNight button { border: 0; padding: 8px 0; border-radius: 12px; background: transparent; font: inherit; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
+.dayNight .active { background: #fff; color: var(--ink); box-shadow: 0 2px 0 rgba(61, 74, 92, 0.1); }
+
+.artPanel { display: grid; gap: 8px; margin-top: 8px; padding: 10px; border-radius: 14px; background: #f3ecdf; }
+.artClock { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 8px; }
+.artClock button { border: 0; width: 30px; height: 30px; border-radius: 10px; background: #fff; color: var(--ink); font-size: 11px; font-weight: 800; cursor: pointer; }
+.artClock b { font-variant-numeric: tabular-nums; font-size: 15px; color: var(--ink); }
+.artClock input { width: 100%; accent-color: #d0694b; }
+.artMoodLabel { font-size: 11px; font-weight: 800; color: var(--muted); }
+.page[data-night="true"] .artPanel { background: #111833; }
+.page[data-night="true"] .artClock button { background: #2c3866; color: #fff; }
+.page[data-night="true"] .chipActive { background: #4a5ea8; color: #fff; }
+
+.page[data-night="true"] { --cream: #1c2544; --ink: #e8ecf8; --muted: #9aa5c4; background: #0b1230; }
+.page[data-night="true"] .header h1 { color: #f4f1ff; text-shadow: 0 2px 12px rgba(120, 150, 255, 0.35); }
+.page[data-night="true"] .panel { box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25), 0 18px 40px rgba(0, 0, 0, 0.4); }
+.page[data-night="true"] .segment, .page[data-night="true"] .dayNight { background: #111833; }
+.page[data-night="true"] .segment .active, .page[data-night="true"] .dayNight .active { background: #2c3866; color: #fff; }
+.page[data-night="true"] .chip { background: #24305a; color: #a9c8ff; }
+.page[data-night="true"] .toggleOn { background: #1f3b44; color: #8fe3c9; }
+.page[data-night="true"] .toggle { background: #1a2140; color: #5f6a8c; }
+.page[data-night="true"] .effectsOn { background: #3a2b40; color: #ffb7a0; }
+.page[data-night="true"] .tip { color: rgba(220, 228, 255, 0.7); }
+.page[data-night="true"] .landmarkLabel { background: #fff3d6; box-shadow: 0 0 18px rgba(255, 200, 120, 0.55); }
+.page[data-night="true"] .stationLabel { background: rgba(20, 28, 60, 0.85); color: #e8ecf8; }
+.page[data-night="true"] .waterLabel { color: #9fdcff; text-shadow: 0 0 6px #0b1230; }
+
+.storyStart, .storyStartActive {
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  padding: 10px 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.storyStart { background: #3d4a5c; color: #fffaf1; }
+.storyStartActive { background: #f2a38a; color: #fff; }
+.demoStart { width: 100%; margin-top: 6px; border: 0; padding: 8px 0; border-radius: 14px; background: #eef6fb; color: #3c7aa0; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.page[data-night="true"] .demoStart { background: #24305a; color: #a9c8ff; }
+.storyStart:disabled { opacity: 0.4; cursor: default; }
+
+.caption {
+  position: absolute;
+  z-index: 3;
+  left: 28px;
+  bottom: 52px;
+  width: min(520px, calc(100vw - 360px));
+  padding: 18px 20px 14px;
+  border-radius: 22px;
+  background: var(--cream);
+  box-shadow: 0 6px 0 rgba(61, 74, 92, 0.08), 0 18px 40px rgba(61, 74, 92, 0.16);
+}
+.captionKicker { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #e07f63; }
+.caption h2 { margin: 6px 0 8px; font-size: 19px; font-weight: 800; line-height: 1.35; }
+.captionBody { margin: 0; font-size: 13px; line-height: 1.7; }
+.captionSource { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.captionNav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.captionNav > button { border: 0; padding: 7px 12px; border-radius: 12px; background: #f1ede6; font: inherit; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer; }
+.captionNav > button:disabled { opacity: 0.35; cursor: default; }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.dot, .dotActive { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; }
+.dot { background: #ddd5c8; }
+.dotActive { background: #e07f63; transform: scale(1.25); }
+.page[data-night="true"] .captionNav > button { background: #111833; color: #e8ecf8; }
+
+.storyLabel {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(61, 74, 92, 0.88);
+  color: #fffaf1;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(61, 74, 92, 0.25);
+}
+
+/* 讲解：路名沿路浮现（逐字），起点 / 终点地名 */
+.roadName {
+  color: #fffaf1;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 6px rgba(40, 50, 70, 0.55), 0 0 2px rgba(40, 50, 70, 0.8);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.roadEnd {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.94);
+  color: #3d4a5c;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(61, 74, 92, 0.25);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+/* CSS2DRenderer 用行内 transform 定位标签，这里只能动透明度、颜色，不能动 transform */
+.labelLit { opacity: 1; }
+/* 站名被列车"点亮"时的一下闪光 */
+.stationLabel.labelLit { animation: stationLit 1.2s ease-out; }
+@keyframes stationLit {
+  0% { background: #ffe08a; box-shadow: 0 0 0 0 rgba(255, 214, 120, 0.95); }
+  100% { background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 0 16px rgba(255, 214, 120, 0); }
+}
+
+.sectionLabel { margin: 16px 0 8px; font-size: 12px; font-weight: 800; color: var(--muted); }
+
+.segment { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; padding: 4px; border-radius: 16px; background: #f3ecdf; }
+.segment button { border: 0; padding: 8px 0; border-radius: 12px; background: transparent; font: inherit; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
+.segment .active { background: #fff; color: var(--ink); box-shadow: 0 2px 0 rgba(61, 74, 92, 0.1); }
+
+.chips, .toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip, .chipActive, .toggle, .toggleOn {
+  border: 0;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.chip { background: #eef6fb; color: #3c7aa0; }
+.chipActive { background: #8ec5e8; color: #fff; }
+.toggle { background: #f1ede6; color: #a19a8f; text-decoration: line-through; }
+.toggleOn { background: #e3f4ee; color: #2f8a68; }
+.chip:hover, .chipActive:hover, .toggle:hover, .toggleOn:hover { transform: translateY(-1px); }
+
+.effects, .effectsOn { width: 100%; margin-top: 14px; border: 0; padding: 9px 0; border-radius: 14px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.effects { background: #f1ede6; color: var(--muted); }
+.effectsOn { background: #fdeee6; color: #d0694b; }
+
+.metroLegend { display: grid; gap: 6px; margin-top: 14px; padding: 10px 12px; border-radius: 14px; background: rgba(58, 188, 168, 0.1); font-size: 12px; font-weight: 700; }
+.metroLegend span { display: flex; align-items: center; gap: 8px; }
+.metroLegend small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.legendSolid { width: 26px; height: 6px; border-radius: 2px; background: #3abca8; box-shadow: 0 2px 0 #2a8a7b; }
+.legendDashed { width: 26px; height: 4px; background: repeating-linear-gradient(90deg, rgba(222, 124, 0, 0.75) 0 8px, transparent 8px 13px); }
+.note { margin: 14px 0 0; font-size: 11px; line-height: 1.6; color: var(--muted); }
+
+.tip { position: absolute; z-index: 2; left: 28px; bottom: 22px; font-size: 12px; font-weight: 700; color: rgba(47, 59, 76, 0.7); }
+
+.landmarkLabel {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fffaf1;
+  color: #2f3b4c;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(61, 74, 92, 0.15), 0 8px 18px rgba(61, 74, 92, 0.12);
+}
+.landmarkLabel:hover { background: #f2a38a; color: #fff; }
+.stationLabel {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #3d4a5c;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.poiLabel {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #3d4a5c;
+  color: #fffaf1;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(61, 74, 92, 0.25);
+}
+.page[data-night="true"] .poiLabel { background: #fff3d6; color: #2b2f45; }
+.waterLabel {
+  color: #2b8fa3;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #fff, 0 0 6px #fff;
+}
+
+@media (max-width: 767px) {
+  .caption { left: 16px; right: 16px; bottom: auto; top: 90px; width: auto; }
+  .header { top: 16px; left: 16px; }
+  .panel { top: auto; bottom: 16px; right: 16px; left: 16px; width: auto; max-height: 42vh; padding: 14px; }
+  .tip { display: none; }
+}
+
+.districtSwitch { pointer-events: auto; display: inline-flex; flex-wrap: wrap; max-width: 420px; gap: 2px; margin-top: 6px; padding: 2px; border-radius: 999px; background: rgba(61, 74, 92, 0.08); }
+.districtSwitch button { border: 0; background: transparent; padding: 4px 14px; border-radius: 999px; font: inherit; font-size: 13px; color: #3d4a5c; cursor: pointer; }
+.districtSwitch .districtActive { background: #3d4a5c; color: #fffaf1; font-weight: 700; }

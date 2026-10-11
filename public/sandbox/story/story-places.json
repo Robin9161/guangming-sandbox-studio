@@ -1,0 +1,308 @@
+{
+ "meta": {
+  "generated": "2026-10-05",
+  "projection": "public/sandbox/sandbox.json meta.projection：origin=[113.929007, 22.76207]，k=0.9221194861972872；mx=R*lng*π/180，my=R*ln(tan(π/4+lat*π/360))，R=6378137，x=(mx-mx0)*k（向东为正），z=-(my-my0)*k（向南为正），单位米",
+  "crs": "WGS84 (EPSG:4326)",
+  "notes": "lng/lat 为 WGS84 经纬度；x/z 为同一要素按沙盘投影换算的本地米制坐标。已用沙盘 boundary 逐点校验，全部落在光明区界内。高德/百度来源的坐标在入库前已转换为 WGS84（详见 reports/story-data/README.md）。verified 表示“位置是否有可核验的坐标来源”，不代表实体是否真实存在；precision 为位置精度等级。"
+ },
+ "places": [
+  {
+   "id": "village-yulu",
+   "name": "玉律",
+   "kind": "village",
+   "lng": 113.890433,
+   "lat": 22.720997,
+   "x": -3959.6,
+   "z": 4571.5,
+   "era": "北宋末年（约 11—12 世纪）",
+   "clan": "莫氏（明中叶以后村中以曾氏为主）",
+   "origin": "莫氏族人迁入立村，初名“玉勒村”，后取谐音改“玉律”；明嘉靖年间（约 1543）新桥曾氏仕贵公十四世孙曾应富（号德贵）迁入开基，为玉律曾氏始祖",
+   "note": "光明区有文献记载最早的村落之一。村内现存曾氏弼君公家塾、玉律德贵曾公祠、玉律一区/二区水井等不可移动文物；村址取旧村（一区/二区/三区）住宅建筑轮廓质心",
+   "source": [
+    "https://www.sznews.com/news/content/2021-11/08/content_24719305.htm",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表"
+   ],
+   "verified": true,
+   "precision": "村中心（旧村建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-heshuikou",
+   "name": "合水口",
+   "kind": "village",
+   "lng": 113.877757,
+   "lat": 22.786161,
+   "x": -5260.8,
+   "z": -2682.0,
+   "era": "明永乐二十一年（1423）",
+   "clan": "麦氏",
+   "origin": "南宋末年麦氏先祖随文天祥抗元入粤；明洪武十四年（1381）南溪公由东莞长安迁出，永乐二十一年（1423）在合水口开基立村。远祖为隋代名将麦铁杖（广东始兴人）",
+   "note": "合水口古村与公明老墟同为光明区仅有的两处历史风貌区（《光明区文化遗产保护传承工作情况报告》），村内保存麦氏大宗祠及麦氏各房公祠、家塾等大批不可移动文物",
+   "source": [
+    "http://www.tcmap.com.cn/guangdong/baoanqu_gongmingjiedao_heshuikoushequ_history.html",
+    "https://www.szgm.gov.cn/xxgk/qbmbscxxgkml/whgdlyj/xxgk_171988/qt_172001/tzgg_172003/content/post_12428044.html",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf"
+   ],
+   "verified": true,
+   "precision": "村中心（旧村建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-loucun",
+   "name": "楼村",
+   "kind": "village",
+   "lng": 113.924525,
+   "lat": 22.784054,
+   "x": -460.1,
+   "z": -2447.4,
+   "era": "明正统年间（1436—1449，村落口述/谱牒说法）",
+   "clan": "陈氏",
+   "origin": "陈氏由水贝（深圳水贝，具体地点未获公开文献确证）迁来，是光明区面积最大的自然村之一",
+   "note": "村内现存陈氏琬璧公家塾、陈氏植德堂、陈氏廷美祖祠堂、廷养二公祠、绚材公家塾等不可移动文物；《分区规划》第 119 条将“楼村老村”列为特色有机更新片区",
+   "source": [
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表",
+    "reports/sources/cognition/光明区国土空间分区规划-2021-2035.pdf#第9条"
+   ],
+   "verified": true,
+   "precision": "村中心（旧村建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-jingkou",
+   "name": "迳口",
+   "kind": "village",
+   "lng": 113.964533,
+   "lat": 22.768208,
+   "x": 3646.7,
+   "z": -683.3,
+   "era": "南宋末期（宗祠始建于南宋末；族人迁入年代另记为元代后期）",
+   "clan": "黄氏",
+   "origin": "黄氏族祖籍福建，南宋末至元代后期迁入迳口（深圳图书馆《迳口黄氏大宗祠》记为“始建于南宋末期，已有 800 多年历史”）",
+   "note": "旧村位于大顶岭西麓脚下。村内保存迳口黄氏大宗祠（今作村史馆）、迳口水井、迳口炮楼、光如公厅、迳口村古窑址、迳口村遗址等",
+   "source": [
+    "https://yun.szlib.org.cn/szmem/ancient/view/id-110.html",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表"
+   ],
+   "verified": true,
+   "precision": "村中心（旧村建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-dongkeng",
+   "name": "东坑",
+   "kind": "village",
+   "lng": 113.911443,
+   "lat": 22.75865,
+   "x": -1802.9,
+   "z": 380.7,
+   "era": "明嘉靖二十五年（1546）",
+   "clan": "钟氏",
+   "origin": "钟氏太祖由东莞寮步移居形成村落；因地形有小坑且地处洋涌河东岸而得名“东坑”",
+   "note": "光明区东南部、洋涌河西岸的广府民系村落；村内现存翠崖黄公祠等不可移动文物",
+   "source": [
+    "https://bkso.baidu.com/item/东坑村/64745681",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf"
+   ],
+   "verified": true,
+   "precision": "村中心（旧村建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-baihua",
+   "name": "白花（白花洞）",
+   "kind": "village",
+   "lng": 113.993858,
+   "lat": 22.742114,
+   "x": 6656.9,
+   "z": 2221.3,
+   "era": "清光绪年间立村（村内炮楼多建于民国，其中周立忠炮楼铭 1935 年）",
+   "clan": "周氏（客家）",
+   "origin": "周氏先祖周礼茂夫妇率四子由惠州白花镇迁来，因地形如桶（易守难攻，称“洞”）、满山白花，且感念故土而得名“白花洞”",
+   "note": "客家围屋村，分新围、马池田、地洋头、围肚、黄屋排、庙径口等自然村；现存碉楼/炮楼五座（黄屋排、围肚、围仔、马池田）、周氏宗祠、周氏绍岐祖祠、围肚水井等，白花洞革命烈士纪念碑为深圳市历史建筑",
+   "source": [
+    "https://dutenews.com/n/article/10357235",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表"
+   ],
+   "verified": true,
+   "precision": "村中心（围肚—黄屋排老围建筑轮廓质心，沙盘建筑数据计算）"
+  },
+  {
+   "id": "village-fenghuang",
+   "name": "凤凰村",
+   "kind": "village",
+   "lng": 113.938871,
+   "lat": 22.728215,
+   "x": 1012.5,
+   "z": 3768.3,
+   "era": "1958 年建村",
+   "clan": "多姓混居（越南归侨约占户籍人口 70%）",
+   "origin": "1958 年随广东省国营光明农场设立，为农场三区三队驻地（曾称五七大队、第三作业区第三中队）；1970 年代后期集中安置越南归难侨；1992 年与红坳村合并为凤凰果场，后恢复独立建制",
+   "note": "村名取自附近“山头朝东、尾朝西，左右南北延伸，如凤凰展翅”的山形。凤凰社区辖茶林、凤凰、红坳 3 个居民点，毗邻光明城站；原凤凰自然村已因城市开发撤销（OSM 标注 place=locality，note“原自然村 因城市开发而撤销”），凤凰知青楼 2019 年拆除后原址复建",
+   "source": [
+    "https://www.sohu.com/a/156928001_99950450",
+    "https://baike.baidu.com/item/凤凰村/64745700",
+    "https://baike.baidu.com/item/凤凰社区/16176977"
+   ],
+   "verified": true,
+   "precision": "村中心（原村址，已拆迁；OSM 地名点）"
+  },
+  {
+   "id": "hall-mai",
+   "name": "麦氏大宗祠",
+   "kind": "ancestral-hall",
+   "lng": 113.877742,
+   "lat": 22.786119,
+   "x": -5262.3,
+   "z": -2677.4,
+   "era": "明弘治年间（1488—1506）始建，后屡有重修",
+   "clan": "麦氏",
+   "origin": "合水口麦氏总祠，被称光明麦氏家族的根源",
+   "note": "深圳市文物保护单位（2021-07-04 公布，编号 7-1），三进五开间，面阔 18.6 m、进深 46.9 m，前天井存“宿国流芳”四柱三间三楼石牌坊；位于合水口老村中部，现作村民活动场所",
+   "source": [
+    "https://zh.wikipedia.org/wiki/麦氏大宗祠_(深圳市)",
+    "https://www.szguanai.com/content/2013-07/01/content_8244784.htm",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf"
+   ],
+   "verified": true,
+   "precision": "建筑级（维基百科地理坐标，未做现场坐标核验）"
+  },
+  {
+   "id": "hall-huang-jingkou",
+   "name": "迳口黄氏大宗祠",
+   "kind": "ancestral-hall",
+   "lng": 113.965441,
+   "lat": 22.768257,
+   "x": 3739.9,
+   "z": -688.7,
+   "era": "明代（近年维修）",
+   "clan": "黄氏",
+   "origin": "迳口黄氏族祠，深圳现存最古老的宗祠之一（始建年代记为南宋末期）",
+   "note": "未定级不可移动文物，现作村史馆使用，占地 200 余平方米，明代红砂岩砌筑。坐标为按文物名录“光明街道办迳口旧村东侧”的方位描述，在迳口旧村建筑轮廓东缘推定，未经现场校准",
+   "source": [
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表",
+    "https://yun.szlib.org.cn/szmem/ancient/view/id-110.html"
+   ],
+   "verified": false,
+   "precision": "示意（按“旧村东侧”文字描述推位，误差 ±100 m 量级）"
+  },
+  {
+   "id": "site-loucun-kiln",
+   "name": "楼村古窑址",
+   "kind": "site",
+   "lng": 113.916,
+   "lat": 22.8005,
+   "x": -1335.2,
+   "z": -4278.6,
+   "era": "元代（现场考古另有“可能早至明初”的意见）",
+   "clan": "—",
+   "origin": "民间又称“公明元代古窑遗址”“深圳第一窑”，2006 年 12 月由宝安区人民政府立碑",
+   "note": "区级文物保护单位。文物名录记为“新湖街道科韵社区（原楼村居委会）白果园内”；实地报道记其位于百果园、流浮井山下的荔枝林山坡上，罗村山遗址西约 500 m、石头湖水库西北一带。公开资料无坐标，示意点取楼村旧村以北约 1.8 km 的果林丘陵（DEM 高程约 57 m），实际位置待现场核实",
+   "source": [
+    "https://site.baoanone.com/content134998.html",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf",
+    "https://zh.wikipedia.org/zh-cn/光明区不可移动文物列表"
+   ],
+   "verified": false,
+   "precision": "示意（±1 km 量级，仅给出候选区域）"
+  },
+  {
+   "id": "market-gongming",
+   "name": "公明墟",
+   "kind": "market",
+   "lng": 113.881356,
+   "lat": 22.787551,
+   "x": -4891.4,
+   "z": -2836.8,
+   "era": "1929 年建墟，1931 年定名“公明”",
+   "clan": "—",
+   "origin": "取“公道光明”之意定名；是公明地区近现代农业、商贸业中心",
+   "note": "区级文物保护单位（2004 年宝安区文管办公布），2020 年列入深圳市第一批 26 处历史风貌区保护名录；保存南洋风骑楼、粮仓、苏式公共建筑，深圳现存唯一骑楼街。坐标为沙盘已数字化的老墟建筑群（Overture 建筑轮廓）轴线中段、正街“T”轴（解放街—共和街—民生路）中心",
+   "source": [
+    "https://www.szgm.gov.cn/gmbs/gkmlpt/content/12/12317/post_12317777.html",
+    "https://www.szgm.gov.cn/gmbs/attachment/1/1613/1613609/12317777.pdf",
+    "https://www.szgm.gov.cn/gmwhgdlyj/attachment/1/1632/1632131/12428045.pdf"
+   ],
+   "verified": true,
+   "precision": "建筑级（据建筑轮廓数字化）"
+  },
+  {
+   "id": "farm-hq",
+   "name": "光明农场场部旧址（示意）",
+   "kind": "other",
+   "lng": 113.936992,
+   "lat": 22.766838,
+   "x": 819.7,
+   "z": -530.8,
+   "era": "1958—2002（农场建制时期）",
+   "clan": "—",
+   "origin": "1958 年成立的广东省国营光明农场（1979 年更名广东省光明华侨畜牧场，2002 年改制为深圳市光明集团有限公司）",
+   "note": "公开资料未见“场部旧址”的确指坐标，仅记光明大街是原光明农场最中心、最繁华的街道，沿街有光明集团办公楼、光明招待所、光明工会、中心幼儿园等农场时期建筑。示意点取光明大街中段（OSM 道路中点），待用农垦/农场档案或历史地图核实",
+   "source": [
+    "https://www.163.com/dy/article/FA98V0A205129QAF.html",
+    "https://www.sznews.com/content/mb/2021-07/16/content_24399937.htm",
+    "https://www.szgm.gov.cn/xxgk/qbmbscxxgkml/gmbsc/xxgk/jgzz_118272/jdgk/content/post_11164916.html"
+   ],
+   "verified": false,
+   "precision": "示意（光明大街中段，±200 m 量级）"
+  },
+  {
+   "id": "csot-t1",
+   "name": "华星光电 T1 厂区（中心点）",
+   "kind": "factory",
+   "lng": 113.916387,
+   "lat": 22.742786,
+   "x": -1295.4,
+   "z": 2146.5,
+   "era": "2009 年成立，2011 年 T1 第 8.5 代液晶面板线投产",
+   "clan": "—",
+   "origin": "华星光电光明基地位于凤凰街道塘明大道，是 2007 年光明新区设立后的第一个产业锚点",
+   "note": "T1 单线厂界未见公开矢量，取华星光电光明基地（OSM way 961082834 用地轮廓）内最大工业建筑（占地约 11.1 万 m²，沙盘建筑轮廓/Overture 数据）中心点作为 T1 厂区示意中心",
+   "source": [
+    "https://www.openstreetmap.org/copyright",
+    "https://zh.wikipedia.org/wiki/华星光电"
+   ],
+   "verified": false,
+   "precision": "示意（园区内最大厂房的中心点）"
+  },
+  {
+   "id": "district-government",
+   "name": "光明区人民政府",
+   "kind": "other",
+   "lng": 113.931307,
+   "lat": 22.751739,
+   "x": 236.1,
+   "z": 1150.0,
+   "era": "2018 年 5 月国务院批复设立光明区，9 月挂牌",
+   "clan": "—",
+   "origin": "光明区政府驻光明街道广场路 1 号（凤凰城片区）",
+   "note": "取 OpenStreetMap amenity=townhall（光明区人民政府）要素点",
+   "source": [
+    "https://www.openstreetmap.org/copyright",
+    "https://www.szgm.gov.cn/"
+   ],
+   "verified": true,
+   "precision": "建筑级（OSM 要素点）"
+  },
+  {
+   "id": "hill-fenghuang",
+   "name": "凤凰村得名的山（候选：麒麟山）",
+   "kind": "hill",
+   "lng": 113.948376,
+   "lat": 22.733271,
+   "x": 1988.2,
+   "z": 3205.6,
+   "era": "1958 年立村时以山形命名",
+   "clan": "—",
+   "origin": "村名取“附近一座山头朝东，尾朝西，左右南北延伸，如凤凰展翅”之意",
+   "note": "候选山头及理由：①麒麟山（OSM natural=peak，距原凤凰村约 1.0 km 东北，DEM 高程约 99 m、相对高差约 70 m，是村址 1.5 km 内显著度最高、且被公开数据收录的山头）——本条目取此示意点；②爆石山、奶头山（百度百科记“周边有爆石山、奶头山及红坳水库”，公开地图无坐标）；③原村址以东约 0.5 km 的小丘（DEM 约 52 m）。三处均无法确认哪一座是命名山，故 verified=false",
+   "source": [
+    "https://baike.baidu.com/item/凤凰村/64745700",
+    "https://baike.baidu.com/item/凤凰社区/16176977",
+    "https://www.sohu.com/a/156928001_99950450",
+    "https://www.openstreetmap.org/copyright"
+   ],
+   "verified": false,
+   "precision": "示意（候选山头之一，待核实）"
+  }
+ ]
+}

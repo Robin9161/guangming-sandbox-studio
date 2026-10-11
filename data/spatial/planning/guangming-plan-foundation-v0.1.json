@@ -1,0 +1,491 @@
+{
+  "meta": {
+    "id": "guangming-plan-foundation-v0.1",
+    "title": "光明国土空间规划七图层重绘底盘",
+    "version": "0.2.0",
+    "coordinateSystem": "WGS84",
+    "planPeriod": "2021-2035",
+    "sourcePdf": "reports/sources/cognition/光明区国土空间分区规划-2021-2035.pdf",
+    "sourcePages": [91, 92, 93, 94, 95, 96, 97],
+    "sourceNature": "official_planning_atlas_raster",
+    "legalBoundaryClaim": false,
+    "accuracyGrade": "C_schematic_map_alignment",
+    "accuracyNote": "当前为高清规划栅格图的图上配准与语义数字化样板。行政边界、水体、道路读取现有真实地理数据；规划色块、箭头和通风廊道只表达规划关系和大致控制范围，不作为宗地、权属或工程放线依据。",
+    "displayRule": "牺牲概览显示细节，不牺牲底层事实；全区尺度合并蓝绿开放空间，放大或进入证据层后再恢复原始规划身份。"
+  },
+  "openSpacePolicy": {
+    "overviewLabel": "蓝绿开放空间底盘",
+    "overviewMembers": [
+      "水库与主要水系",
+      "公园与连续绿地",
+      "永久基本农田（概览层按连续农业开放空间合并）",
+      "生态保护红线与区域绿地（保留不同来源身份）"
+    ],
+    "sourceIdentityPreserved": true,
+    "renderPrecedence": [
+      "water",
+      "ecological_redline",
+      "permanent_basic_farmland",
+      "regional_green",
+      "other_open_space"
+    ],
+    "semanticZoom": {
+      "district": "只显示连续蓝绿底盘和城市可开发空间关系",
+      "sector": "区分水体、刚性生态约束、农业开放空间和区域绿地",
+      "evidence": "显示原始图斑、来源页、观察日期和配准精度"
+    }
+  },
+  "rasterOverlays": [
+    {
+      "id": "overall-plan-raster",
+      "name": "国土空间总体格局规划图",
+      "sourcePage": 91,
+      "image": "/planning/guangming-plan-01-overall.jpg",
+      "coordinates": [
+        [113.841026, 22.858773],
+        [113.999945, 22.86957],
+        [114.00639, 22.684612],
+        [113.847472, 22.673815]
+      ],
+      "defaultOpacity": 0.38,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "control-lines-raster",
+      "name": "国土空间控制线规划图",
+      "sourcePage": 92,
+      "image": "/planning/guangming-plan-02-control-lines.jpg",
+      "coordinates": [[113.841026, 22.858773], [113.999945, 22.86957], [114.00639, 22.684612], [113.847472, 22.673815]],
+      "defaultOpacity": 0.42,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "farmland-raster",
+      "name": "耕地和永久基本农田保护红线图",
+      "sourcePage": 93,
+      "image": "/planning/guangming-plan-03-farmland.jpg",
+      "coordinates": [[113.841026, 22.858773], [113.999945, 22.86957], [114.00639, 22.684612], [113.847472, 22.673815]],
+      "defaultOpacity": 0.46,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "ecological-redline-raster",
+      "name": "生态保护红线图",
+      "sourcePage": 94,
+      "image": "/planning/guangming-plan-04-ecological-redline.jpg",
+      "coordinates": [[113.841026, 22.858773], [113.999945, 22.86957], [114.00639, 22.684612], [113.847472, 22.673815]],
+      "defaultOpacity": 0.46,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "development-boundary-raster",
+      "name": "城镇开发边界图",
+      "sourcePage": 95,
+      "image": "/planning/guangming-plan-05-development-boundary.jpg",
+      "coordinates": [[113.841026, 22.858773], [113.999945, 22.86957], [114.00639, 22.684612], [113.847472, 22.673815]],
+      "defaultOpacity": 0.42,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "ecological-system-raster",
+      "name": "生态系统保护规划图",
+      "sourcePage": 96,
+      "image": "/planning/guangming-plan-06-ecological-system.jpg",
+      "coordinates": [[113.841026, 22.858773], [113.999945, 22.86957], [114.00639, 22.684612], [113.847472, 22.673815]],
+      "defaultOpacity": 0.42,
+      "accuracyGrade": "C_schematic_map_alignment"
+    },
+    {
+      "id": "wind-plan-raster",
+      "name": "通风廊道规划图",
+      "sourcePage": 97,
+      "image": "/planning/guangming-plan-07-wind.jpg",
+      "coordinates": [
+        [113.841026, 22.858773],
+        [113.999945, 22.86957],
+        [114.00639, 22.684612],
+        [113.847472, 22.673815]
+      ],
+      "defaultOpacity": 0.46,
+      "accuracyGrade": "C_schematic_map_alignment"
+    }
+  ],
+  "windCorridors": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "wind-primary-west",
+          "name": "西部一级通风廊道控制区",
+          "level": 1,
+          "levelLabel": "一级通风廊道",
+          "direction": "由南向北并向西北疏导",
+          "sourcePage": 97,
+          "accuracyGrade": "C_schematic_interpretation",
+          "consumerMeaning": "表示规划控制廊道及其连续性，不代表实时风速、温度或空气质量。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [113.85912, 22.683119],
+            [113.858463, 22.701993],
+            [113.860921, 22.721078],
+            [113.862341, 22.740092],
+            [113.860644, 22.758895],
+            [113.854793, 22.777415],
+            [113.854136, 22.796288],
+            [113.857633, 22.815444],
+            [113.863273, 22.832853],
+            [113.872174, 22.816432],
+            [113.868677, 22.797276],
+            [113.868296, 22.778332],
+            [113.867915, 22.759389],
+            [113.87065, 22.740657],
+            [113.874424, 22.721995],
+            [113.875082, 22.703122],
+            [113.872623, 22.684037],
+            [113.85912, 22.683119]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "wind-secondary-central",
+          "name": "中部二级通风廊道控制区",
+          "level": 2,
+          "levelLabel": "二级通风廊道",
+          "direction": "由南向北贯穿中部城市建设区",
+          "sourcePage": 97,
+          "accuracyGrade": "C_schematic_interpretation",
+          "consumerMeaning": "表示规划控制廊道及其连续性，不代表实时风速、温度或空气质量。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [113.89859, 22.685801],
+            [113.897604, 22.714111],
+            [113.897137, 22.742456],
+            [113.89615, 22.770766],
+            [113.895683, 22.799111],
+            [113.900632, 22.836337],
+            [113.905826, 22.83669],
+            [113.901915, 22.799534],
+            [113.901863, 22.771154],
+            [113.902849, 22.742844],
+            [113.903836, 22.714534],
+            [113.905861, 22.686295],
+            [113.89859, 22.685801]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "wind-primary-east",
+          "name": "东部一级通风廊道控制区",
+          "level": 1,
+          "levelLabel": "一级通风廊道",
+          "direction": "由南向北沿东部山水空间疏导",
+          "sourcePage": 97,
+          "accuracyGrade": "C_schematic_interpretation",
+          "consumerMeaning": "表示规划控制廊道及其连续性，不代表实时风速、温度或空气质量。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [113.939099, 22.688553],
+            [113.943306, 22.717216],
+            [113.947513, 22.745879],
+            [113.949642, 22.7744],
+            [113.951772, 22.802922],
+            [113.959621, 22.816698],
+            [113.972151, 22.815657],
+            [113.966412, 22.801079],
+            [113.962106, 22.775247],
+            [113.959977, 22.746725],
+            [113.95577, 22.718063],
+            [113.951563, 22.6894],
+            [113.939099, 22.688553]
+          ]]
+        }
+      }
+    ]
+  },
+  "windAxes": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "id": "wind-primary-west-axis", "level": 1 },
+        "geometry": { "type": "LineString", "coordinates": [[113.866, 22.69], [113.866, 22.74], [113.861, 22.79], [113.866, 22.826]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "wind-secondary-central-axis", "level": 2 },
+        "geometry": { "type": "LineString", "coordinates": [[113.902, 22.69], [113.8995, 22.75], [113.899, 22.80], [113.903, 22.834]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "wind-primary-east-axis", "level": 1 },
+        "geometry": { "type": "LineString", "coordinates": [[113.946, 22.692], [113.953, 22.75], [113.957, 22.80], [113.966, 22.814]] }
+      }
+    ]
+  },
+  "structureAreas": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "science-lead-zone",
+          "name": "大科学装置引领区",
+          "kind": "science",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划色块外轮廓经图上控制点配准后矢量描绘",
+          "consumerMeaning": "表示大科学装置与科教功能的规划引领范围，不等于建设用地或可交易宗地边界。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[113.873147, 22.81839], [113.883517, 22.819567], [113.898141, 22.818196], [113.91288, 22.813522], [113.927586, 22.809792], [113.942062, 22.812667], [113.956505, 22.816486], [113.964913, 22.814219], [113.965662, 22.807649], [113.962257, 22.800796], [113.948952, 22.794217], [113.92831, 22.789031], [113.909498, 22.791064], [113.890703, 22.792624], [113.877085, 22.79501], [113.872635, 22.803221], [113.873147, 22.81839]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "advanced-manufacturing-zone",
+          "name": "先进制造业集聚区",
+          "kind": "manufacturing",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划色块外轮廓经图上控制点配准后矢量描绘",
+          "consumerMeaning": "表示先进制造业的规划集聚方向；色块跨越多个真实街区，不能直接解释为单一房地产板块。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[113.854234, 22.793457], [113.866666, 22.795248], [113.880366, 22.790503], [113.886992, 22.779603], [113.885375, 22.76625], [113.892134, 22.751575], [113.950464, 22.750809], [113.958031, 22.74281], [113.957551, 22.726697], [113.947362, 22.720329], [113.916366, 22.713494], [113.885271, 22.709489], [113.874687, 22.714446], [113.870979, 22.73122], [113.870486, 22.745375], [113.866942, 22.757431], [113.858238, 22.76819], [113.852551, 22.781992], [113.854234, 22.793457]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "comprehensive-service-zone",
+          "name": "综合服务区",
+          "kind": "service",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划色块外轮廓经图上控制点配准后矢量描绘",
+          "consumerMeaning": "表示综合服务功能的规划覆盖范围，需继续用已建成公共服务和商业供给判断当前成熟度。"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[113.882476, 22.789701], [113.902211, 22.791041], [113.925161, 22.789763], [113.942752, 22.79285], [113.950286, 22.785795], [113.952824, 22.772724], [113.952377, 22.755668], [113.94631, 22.750526], [113.927646, 22.748312], [113.913072, 22.748268], [113.901482, 22.75221], [113.891904, 22.758181], [113.88836, 22.770237], [113.883876, 22.779391], [113.882476, 22.789701]]]
+        }
+      }
+    ]
+  },
+  "structureAxes": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "maozhou-vitality-corridor",
+          "name": "茅洲河创想活力走廊",
+          "kind": "water_axis",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划宽箭头中心走向经控制点配准后重绘",
+          "consumerMeaning": "表示沿茅洲河组织公共空间与城市活力的规划方向，不代表已全部建成。"
+        },
+        "geometry": { "type": "LineString", "coordinates": [[113.843551, 22.801245], [113.86543, 22.800839], [113.887472, 22.795716], [113.896341, 22.780238], [113.900608, 22.747421], [113.90072, 22.714323], [113.901023, 22.690696]] }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "longda-innovation-corridor",
+          "name": "龙大科技创新走廊",
+          "kind": "innovation_axis",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划宽箭头中心走向经控制点配准后重绘",
+          "consumerMeaning": "表示沿龙大交通轴串联科创功能的战略方向，不是固定宽度的法定控制线。"
+        },
+        "geometry": { "type": "LineString", "coordinates": [[113.861195, 22.832712], [113.881522, 22.817067], [113.895683, 22.799111], [113.903611, 22.780732], [113.923294, 22.753692], [113.945054, 22.726794], [113.965611, 22.704543]] }
+      }
+    ]
+  },
+  "structureCenterRing": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "guangming-center-ring",
+          "name": "光明中心",
+          "kind": "center_ring",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划中心环外形经图上控制点配准后折线重绘",
+          "consumerMeaning": "表达公明与光明共同组成双核中心的规划关系，不是行政或房地产板块边界。"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [[113.887298, 22.785772], [113.896028, 22.789203], [113.910553, 22.790662], [113.926232, 22.78889], [113.939932, 22.784145], [113.943344, 22.775864], [113.938381, 22.768906], [113.926016, 22.765228], [113.908342, 22.7645], [113.893652, 22.767758], [113.88719, 22.773941], [113.887298, 22.785772]]
+        }
+      }
+    ]
+  },
+  "structureCenters": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "gongming-center",
+          "name": "公明",
+          "kind": "center",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划中心符号中心点经图上配准定位",
+          "consumerMeaning": "规划双核中心之一；当前成熟度仍须由真实商业、公共服务和交通供给验证。"
+        },
+        "geometry": { "type": "Point", "coordinates": [113.895335, 22.779224] }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "guangming-center",
+          "name": "光明",
+          "kind": "center",
+          "sourcePage": 91,
+          "accuracyGrade": "C_schematic_interpretation",
+          "redrawMethod": "规划中心符号中心点经图上配准定位",
+          "consumerMeaning": "规划双核中心之一；规划中心身份不能替代楼盘到日常服务设施的真实可达性。"
+        },
+        "geometry": { "type": "Point", "coordinates": [113.930782, 22.777848] }
+      }
+    ]
+  },
+  "structureLabels": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "id": "science-label", "name": "大科学装置引领区", "kind": "science", "shortName": "科学引领" }, "geometry": { "type": "Point", "coordinates": [113.92165, 22.800875] } },
+      { "type": "Feature", "properties": { "id": "manufacturing-label", "name": "先进制造业集聚区", "kind": "manufacturing", "shortName": "先进制造" }, "geometry": { "type": "Point", "coordinates": [113.879998, 22.741292] } },
+      { "type": "Feature", "properties": { "id": "service-label", "name": "综合服务区", "kind": "service", "shortName": "综合服务" }, "geometry": { "type": "Point", "coordinates": [113.933451, 22.761003] } },
+      { "type": "Feature", "properties": { "id": "center-label", "name": "光明中心", "kind": "center_ring", "shortName": "光明中心" }, "geometry": { "type": "Point", "coordinates": [113.911014, 22.777451] } },
+      { "type": "Feature", "properties": { "id": "maozhou-label", "name": "茅洲河创想活力走廊", "kind": "water_axis", "shortName": "茅洲河活力轴" }, "geometry": { "type": "Point", "coordinates": [113.900608, 22.747421] } },
+      { "type": "Feature", "properties": { "id": "longda-label", "name": "龙大科技创新走廊", "kind": "innovation_axis", "shortName": "龙大科创轴" }, "geometry": { "type": "Point", "coordinates": [113.923294, 22.753692] } }
+    ]
+  },
+  "redrawCoverage": [
+    { "sourcePage": 91, "title": "国土空间总体格局", "status": "redrawn", "objects": "三区、双轴、双中心、生态绿环" },
+    { "sourcePage": 92, "title": "国土空间控制线", "status": "composed", "objects": "由第93—95页独立重绘层组合，不重复造线" },
+    { "sourcePage": 93, "title": "耕地和永久基本农田", "status": "aggregated", "objects": "概览层合并为4个农业开放空间簇；原始碎片由证据图保留" },
+    { "sourcePage": 94, "title": "生态保护红线", "status": "redrawn", "objects": "5个主要连续控制区" },
+    { "sourcePage": 95, "title": "城镇开发边界", "status": "redrawn", "objects": "主建设区及3个相对独立建设组团" },
+    { "sourcePage": 96, "title": "生态系统保护", "status": "redrawn", "objects": "区域绿地、生态保育环、生态主脉、8条蓝绿廊道" },
+    { "sourcePage": 97, "title": "通风廊道", "status": "redrawn", "objects": "2条一级、1条二级通风廊道控制区" }
+  ],
+  "constraintAreas": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "id": "development-main", "name": "中西部连续城镇建设空间", "kind": "development", "sourcePage": 95, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "城镇开发边界图的连续集中建设区经图上配准后概略描绘", "consumerMeaning": "表示可集中组织城镇建设的大尺度空间，不等于尚有可售土地，也不能替代宗地和法定边界数据。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.860814,22.813768],[113.879478,22.815982],[113.895222,22.812322],[113.908643,22.815599],[113.923464,22.808566],[113.939012,22.810568],[113.955384,22.818774],[113.962803,22.815022],[113.959207,22.798697],[113.943824,22.791977],[113.936816,22.783934],[113.942404,22.772962],[113.941793,22.760624],[113.950464,22.750809],[113.95602,22.740781],[113.945962,22.730639],[113.929606,22.72196],[113.908898,22.718662],[113.89007,22.721166],[113.878381,22.727939],[113.874772,22.741882],[113.87019,22.753868],[113.866581,22.767811],[113.859112,22.772979],[113.857416,22.791782],[113.860814,22.813768]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "development-east", "name": "光明东部建设组团", "kind": "development", "sourcePage": 95, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "相邻集中建设图斑按全区阅读尺度合并", "consumerMeaning": "用于识别建设空间与公明水库生态底盘的接壤关系，不表示可开发强度。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.941037,22.782329],[113.950286,22.785795],[113.957919,22.775908],[113.956269,22.7635],[113.950267,22.756471],[113.942832,22.760695],[113.939288,22.772751],[113.941037,22.782329]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "development-southeast", "name": "东南建设组团", "kind": "development", "sourcePage": 95, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "相邻集中建设图斑按全区阅读尺度合并", "consumerMeaning": "表示生态空间之间相对独立的建设组团，真实连通性仍需结合道路和街区核验。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.968996,22.756797],[113.980356,22.759461],[113.992952,22.756533],[113.997402,22.748322],[113.992439,22.741364],[113.980008,22.739573],[113.969457,22.743586],[113.968996,22.756797]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "development-southwest", "name": "西南建设组团", "kind": "development", "sourcePage": 95, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "相邻集中建设图斑按全区阅读尺度合并", "consumerMeaning": "表示西南部建设空间的大致包络，不代表其中生态、水体或已建成街区被取消。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.87276,22.739854],[113.888308,22.741856],[113.893995,22.728054],[113.88936,22.711659],[113.878132,22.705221],[113.872577,22.715248],[113.87276,22.739854]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "farmland-north", "name": "北部农业开放空间簇", "kind": "farmland", "sourcePage": 93, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "将相邻永久基本农田与耕地图斑合并为概览包络；原始碎片仅在证据层显示", "consumerMeaning": "用于看出北部连续农业开放空间对城市扩展的约束；不能作为单块永久基本农田的权属或边界依据。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.909304,22.826522],[113.917968,22.83184],[113.930952,22.832722],[113.943061,22.828815],[113.94644,22.821477],[113.943035,22.814625],[113.933785,22.811159],[113.923431,22.809509],[113.913952,22.812649],[113.909047,22.818937],[113.909304,22.826522]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "farmland-east", "name": "公明水库西侧农业开放空间簇", "kind": "farmland", "sourcePage": 93, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "将相邻永久基本农田与耕地图斑合并为概览包络；原始碎片仅在证据层显示", "consumerMeaning": "显示建设空间与水库生态空间之间的农业缓冲关系，不代表每个位置均为同一管制类型。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.941096,22.795575],[113.949842,22.798534],[113.957228,22.795725],[113.96064,22.787444],[113.958859,22.77881],[113.954027,22.768077],[113.94458,22.770273],[113.940616,22.779462],[113.941096,22.795575]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "farmland-west", "name": "西部农业开放空间簇", "kind": "farmland", "sourcePage": 93, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "将相邻永久基本农田与耕地图斑合并为概览包络；原始碎片仅在证据层显示", "consumerMeaning": "显示西部建设空间边缘的农业开放空间，不用于宗地级判断。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.864017,22.766691],[113.87278,22.769178],[113.879761,22.763031],[113.879117,22.751637],[113.874772,22.741882],[113.867906,22.744727],[113.864477,22.75348],[113.864017,22.766691]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "farmland-southwest", "name": "西南农业开放空间簇", "kind": "farmland", "sourcePage": 93, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "将相邻永久基本农田与耕地图斑合并为概览包络；原始碎片仅在证据层显示", "consumerMeaning": "概览层与区域绿地合并阅读，证据层仍区分农业和生态来源身份。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.862124,22.71643],[113.873517,22.71815],[113.883095,22.712179],[113.883976,22.701834],[113.878007,22.693862],[113.866516,22.694973],[113.86148,22.705035],[113.862124,22.71643]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "redline-east", "name": "公明水库—东部山体生态保护红线", "kind": "ecological_redline", "sourcePage": 94, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "生态保护红线主连续色块经图上配准后描绘", "consumerMeaning": "刚性生态约束的认知范围；正式边界必须使用自然资源部门发布的权威矢量。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.969265,22.80884],[113.978613,22.809475],[113.982998,22.803151],[113.983623,22.785222],[113.990151,22.777152],[113.984149,22.770123],[113.985484,22.761701],[113.978443,22.754601],[113.966143,22.749036],[113.952871,22.741513],[113.945304,22.749512],[113.951207,22.759372],[113.955033,22.769091],[113.958892,22.777866],[113.956387,22.789993],[113.96018,22.800655],[113.969265,22.80884]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "redline-south", "name": "南部山体生态保护红线", "kind": "ecological_redline", "sourcePage": 94, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "生态保护红线主连续色块经图上配准后描绘", "consumerMeaning": "表明南部生态空间对城镇建设方向的约束，不作为具体项目合规判定。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.942648,22.736089],[113.953167,22.73302],[113.963389,22.738444],[113.972934,22.733417],[113.983223,22.736954],[113.987673,22.728743],[113.978522,22.722446],[113.96408,22.718627],[113.949406,22.721414],[113.940867,22.727455],[113.942648,22.736089]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "redline-southwest", "name": "西南生态保护红线", "kind": "ecological_redline", "sourcePage": 94, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "生态保护红线主连续色块经图上配准后描绘", "consumerMeaning": "表明西南水库山体周边的刚性生态约束，正式边界仍须权威矢量。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.860895,22.706887],[113.869303,22.704621],[113.87852,22.709031],[113.883424,22.702743],[113.880101,22.693531],[113.869244,22.691374],[113.861842,22.694655],[113.860895,22.706887]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "redline-west", "name": "西部生态保护红线", "kind": "ecological_redline", "sourcePage": 94, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "生态保护红线主连续色块经图上配准后描绘", "consumerMeaning": "表示西部边缘的连续生态控制空间，不代表图上包络内每一处均采用相同管制规则。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.861269,22.740965],[113.866528,22.739431],[113.866437,22.727128],[113.862446,22.722127],[113.86004,22.731423],[113.861269,22.740965]]] }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "redline-north", "name": "北部生态保护红线", "kind": "ecological_redline", "sourcePage": 94, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "北部相邻小型生态红线图斑按全区阅读尺度合并", "consumerMeaning": "只表达北部生态约束的存在和连续方向，不表达细碎图斑边界。" },
+        "geometry": { "type": "Polygon", "coordinates": [[[113.871681,22.830587],[113.885102,22.833863],[113.901704,22.835464],[113.911184,22.832325],[113.906089,22.829141],[113.889421,22.829427],[113.8791,22.826834],[113.871681,22.830587]]] }
+      }
+    ]
+  },
+  "ecologicalSystemAreas": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "id": "regional-green-north", "name": "北部区域绿地", "kind": "regional_green", "sourcePage": 96, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "区域绿地连续纹理按概览尺度合并描绘", "consumerMeaning": "与农田共同形成北部开放空间底盘；底层仍保留各自来源身份。" }, "geometry": { "type": "Polygon", "coordinates": [[[113.868598,22.829431],[113.88093,22.834053],[113.905826,22.83669],[113.924621,22.835129],[113.939425,22.828568],[113.948031,22.82064],[113.945211,22.811935],[113.929696,22.808989],[113.912979,22.810691],[113.90058,22.807957],[113.886913,22.811758],[113.872273,22.813601],[113.868598,22.829431]]] } },
+      { "type": "Feature", "properties": { "id": "regional-green-east", "name": "东部区域绿地", "kind": "regional_green", "sourcePage": 96, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "区域绿地连续纹理按概览尺度合并描绘", "consumerMeaning": "显示公明水库和东部山体构成的连续生态底盘。" }, "geometry": { "type": "Polygon", "coordinates": [[[113.961994,22.808346],[113.978613,22.809475],[113.983195,22.797489],[113.983886,22.777673],[113.989375,22.769532],[113.984642,22.755968],[113.973447,22.748586],[113.95978,22.752387],[113.954126,22.765246],[113.955611,22.782373],[113.958267,22.795796],[113.961994,22.808346]]] } },
+      { "type": "Feature", "properties": { "id": "regional-green-south", "name": "南部区域绿地", "kind": "regional_green", "sourcePage": 96, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "区域绿地连续纹理按概览尺度合并描绘", "consumerMeaning": "显示南部生态保育环和山体水库的连续关系。" }, "geometry": { "type": "Polygon", "coordinates": [[[113.938493,22.735807],[113.953101,22.734907],[113.967478,22.740614],[113.9853,22.737095],[113.987739,22.726856],[113.97755,22.720488],[113.954764,22.717048],[113.932788,22.720285],[113.938493,22.735807]]] } },
+      { "type": "Feature", "properties": { "id": "regional-green-west", "name": "西部区域绿地", "kind": "regional_green", "sourcePage": 96, "accuracyGrade": "C_schematic_aggregation", "redrawMethod": "西部和西南区域绿地按连续带状空间合并描绘", "consumerMeaning": "显示西部边缘生态空间与南北生态保育环的连续性。" }, "geometry": { "type": "Polygon", "coordinates": [[[113.857252,22.7965],[113.863319,22.801642],[113.867257,22.778262],[113.865838,22.759248],[113.87065,22.740657],[113.867285,22.717726],[113.87518,22.700291],[113.868205,22.691304],[113.861224,22.697451],[113.862124,22.71643],[113.858186,22.73981],[113.855287,22.76326],[113.855668,22.782204],[113.857252,22.7965]]] } }
+    ]
+  },
+  "ecologicalMainArteries": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "id": "ecological-main-west", "name": "西部—茅洲河生态主脉", "kind": "ecological_main", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划生态主脉宽箭头的中心走向重绘", "consumerMeaning": "表达生态连通的骨架方向，不代表已建成连续绿道或固定宽度控制线。" }, "geometry": { "type": "LineString", "coordinates": [[113.844919,22.791879],[113.859296,22.797585],[113.877894,22.801686],[113.892517,22.800315],[113.903118,22.794887],[113.907569,22.786676],[113.908095,22.771577]] } },
+      { "type": "Feature", "properties": { "id": "ecological-main-south", "name": "茅洲河生态主脉", "kind": "ecological_main", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划生态主脉宽箭头的中心走向重绘", "consumerMeaning": "表达茅洲河纵向连接北中南生态空间的规划关系。" }, "geometry": { "type": "LineString", "coordinates": [[113.90747,22.789507],[113.908095,22.771577],[113.907615,22.755465],[113.904118,22.736309],[113.901693,22.71628],[113.906505,22.697689]] } }
+    ]
+  },
+  "blueGreenCorridors": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "id": "corridor-west-source", "name": "西部水源连通廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.901915,22.799534],[113.897399,22.809632],[113.895025,22.817984],[113.898075,22.820083]] } },
+      { "type": "Feature", "properties": { "id": "corridor-xinbeitou", "name": "新陂头河蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.90747,22.789507],[113.916785,22.791086],[113.926942,22.798397],[113.936192,22.801863],[113.943791,22.792921],[113.951095,22.792471]] } },
+      { "type": "Feature", "properties": { "id": "corridor-loucun", "name": "楼村水蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.907635,22.784789],[113.919093,22.784621],[113.93065,22.781623],[113.940327,22.772821],[113.952857,22.771781]] } },
+      { "type": "Feature", "properties": { "id": "corridor-houdikeng", "name": "后底坑蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.896637,22.771745],[113.887453,22.766391],[113.88155,22.756531],[113.87136,22.750164],[113.864023,22.751557]] } },
+      { "type": "Feature", "properties": { "id": "corridor-dongkeng", "name": "东坑水蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.901449,22.753154],[113.915958,22.755085],[113.930565,22.754186],[113.947184,22.755315]] } },
+      { "type": "Feature", "properties": { "id": "corridor-minghu", "name": "明湖蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.901679,22.746548],[113.890352,22.742941],[113.877954,22.740207],[113.866495,22.740374]] } },
+      { "type": "Feature", "properties": { "id": "corridor-yutian", "name": "玉田水蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.897689,22.741548],[113.891753,22.732631],[113.884811,22.722701],[113.882024,22.713052]] } },
+      { "type": "Feature", "properties": { "id": "corridor-ejing", "name": "鹅颈水蓝绿廊道", "kind": "blue_green_corridor", "sourcePage": 96, "accuracyGrade": "C_schematic_interpretation", "redrawMethod": "规划虚线廊道中心线重绘", "consumerMeaning": "规划生态连通方向，不表示当前可步行绿道。" }, "geometry": { "type": "LineString", "coordinates": [[113.909114,22.742324],[113.919666,22.738311],[113.927167,22.7322],[113.935739,22.725215],[113.945186,22.723019]] } }
+    ]
+  }
+}
