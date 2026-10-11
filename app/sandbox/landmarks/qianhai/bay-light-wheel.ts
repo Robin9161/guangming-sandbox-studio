@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { landmarkKit, type LandmarkContext } from "../_landmark-kit";
-import { glowColor } from "../../scene/atmosphere";
+import { glowColor, nightUniform } from "../../scene/atmosphere";
+import { addEmissive } from "../../scene/nodes";
+import { atan, cos, positionLocal, pow, uniform, vec3 } from "three/tsl";
 
 /**
  * 湾区之光 · 欢乐港湾（宝安滨海文化公园，沙盘 district=qianhai）。
@@ -86,22 +88,12 @@ export function buildBayLightWheel(ctx: Ctx): THREE.Group {
   }
   rotor.add(wheel.finish());
 
-  const lightTime = { value: 0 };
+  const lightTime = uniform(0);
   const rimMaterial = new THREE.MeshStandardMaterial({ color: "#fff0d5", roughness: .4 });
   glowColor(rimMaterial, "#ffe0a4", .9);
-  const previous = rimMaterial.onBeforeCompile;
-  rimMaterial.onBeforeCompile = (shader, renderer) => {
-    previous.call(rimMaterial, shader, renderer);
-    shader.uniforms.uWheelTime = lightTime;
-    shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWheelXY;")
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWheelXY = position.xy;");
-    shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uWheelTime; varying vec2 vWheelXY;")
-      .replace("#include <opaque_fragment>", `
-        float wave = pow(0.5 + 0.5 * cos(atan(vWheelXY.y, vWheelXY.x) * 3.0 - uWheelTime), 6.0);
-        outgoingLight += uNight * wave * vec3(0.8, 0.35, 0.08);
-        #include <opaque_fragment>`);
-  };
-  rimMaterial.customProgramCacheKey = () => "bay-light-wheel-flow-v1";
+  // 沿圆周流动的暖色灯带（夜里）：按局部 xy 的角度，波峰随时间转动
+  const wave = pow(cos(atan(positionLocal.y, positionLocal.x).mul(3.0).sub(lightTime)).mul(0.5).add(0.5), 6.0);
+  addEmissive(rimMaterial, vec3(0.8, 0.35, 0.08).mul(wave).mul(nightUniform), "wheel");
   for (const z of [-2.03, 2.03]) {
     const lamp = new THREE.Mesh(new THREE.TorusGeometry(RADIUS - .1, .17, 4, 112), rimMaterial);
     lamp.position.z = z;
@@ -111,11 +103,9 @@ export function buildBayLightWheel(ctx: Ctx): THREE.Group {
   // 椭球玻璃舱 + 白色弧形框架/顶底盘，三组实例共28舱；无透明排序。
   const glass = new THREE.MeshStandardMaterial({ color: COLORS.glazing, roughness: .32, metalness: .22 });
   glowColor(glass, "#ffe2b0", .4);
-  glass.customProgramCacheKey = () => "bay-light-wheel-cabin-glow-04";
   const shell = new THREE.MeshStandardMaterial({ color: COLORS.white, roughness: .65 });
   const trim = new THREE.MeshStandardMaterial({ color: "#fff0d5", roughness: .4 });
   glowColor(trim, "#ffe2b0", .65);
-  trim.customProgramCacheKey = () => "bay-light-wheel-trim-glow-065";
   const frames: THREE.BufferGeometry[] = [];
   for (const a of [0, Math.PI / 2]) frames.push(new THREE.TorusGeometry(1, .045, 4, 10).scale(a === 0 ? 3.05 : 2.25, 2.38, 1).rotateY(a));
   frames.push(new THREE.CylinderGeometry(2.1, 2.55, .32, 12).scale(1.18, 1, 1).translate(0, -1.7, 0));

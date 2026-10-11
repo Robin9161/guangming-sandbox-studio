@@ -1,0 +1,142 @@
+[
+  {
+    "name": "01-光明-白天",
+    "ran": "ok",
+    "fps": 33.9,
+    "worstFrameMs": 84.7,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "02-光明-夜晚",
+    "ran": "ok",
+    "fps": 34,
+    "worstFrameMs": 85.2,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "03-光影-日出",
+    "ran": "ok",
+    "fps": 33.6,
+    "worstFrameMs": 81.5,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "04-光影-正午",
+    "ran": "ok",
+    "fps": 32.6,
+    "worstFrameMs": 81.7,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "05-光影-黄金时刻",
+    "ran": "ok",
+    "fps": 32.2,
+    "worstFrameMs": 73.2,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "06-光影-蓝调",
+    "ran": "ok",
+    "fps": 32.4,
+    "worstFrameMs": 86.3,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "07-光影-深夜",
+    "ran": "ok",
+    "fps": 31.5,
+    "worstFrameMs": 84.9,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "08-光影-雨-黄金时刻",
+    "ran": "ok",
+    "fps": 32.4,
+    "worstFrameMs": 86.1,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "09-光影-雪-正午",
+    "ran": "ok",
+    "fps": 34.1,
+    "worstFrameMs": 79.9,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "10-光影-雾-日出",
+    "ran": "ok",
+    "fps": 32.8,
+    "worstFrameMs": 86.2,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "11-天际线-蓝调",
+    "ran": "ok",
+    "fps": 36.9,
+    "worstFrameMs": 68,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "12-前海-白天",
+    "ran": "ok",
+    "fps": 31.1,
+    "worstFrameMs": 82.1,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "13-南山-白天",
+    "ran": "ok",
+    "fps": 31.1,
+    "worstFrameMs": 96.8,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "14-宝安-白天",
+    "ran": "ok",
+    "fps": 30.6,
+    "worstFrameMs": 82.6,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  }
+]

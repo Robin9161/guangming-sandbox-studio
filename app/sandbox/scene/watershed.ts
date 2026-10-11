@@ -1,4 +1,6 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { float, positionWorld, uniform } from "three/tsl";
+import { addMask } from "./nodes";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { exaggerate } from "./palette";
 import { pairs, type SandboxData } from "./types";
@@ -190,14 +192,9 @@ export function buildWatershedView(ws: WatershedData, demBuffer: ArrayBuffer, sa
   // ---- 水库水面与坝
   const waterMaterial = (radial: boolean) => {
     const m = new THREE.MeshStandardMaterial({ color: "#5aa6d0", roughness: 0.35, metalness: 0.05, transparent: true, opacity: 0.92, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -10 });
-    const uniforms = { uDam: { value: new THREE.Vector2() }, uRadius: { value: 1e9 } };
-    if (radial) {
-      m.onBeforeCompile = (shader) => {
-        Object.assign(shader.uniforms, uniforms);
-        shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWXZ;").replace("#include <project_vertex>", "#include <project_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;");
-        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWXZ;\nuniform vec2 uDam;\nuniform float uRadius;").replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (distance(vWXZ, uDam) > uRadius) discard;");
-      };
-    }
+    const uniforms = { uDam: uniform(new THREE.Vector2()), uRadius: uniform(1e9) };
+    // 水从坝前沿半径慢慢铺开：离坝超过 uRadius 的片元不画
+    if (radial) addMask(m, positionWorld.xz.distance(uniforms.uDam).lessThanEqual(uniforms.uRadius).select(float(1), float(0)));
     return { m, uniforms };
   };
   const reservoirMeshes = reservoirs.map((r) => {

@@ -1,4 +1,5 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { cameraPosition, clamp, float, fract, instancedBufferAttribute, length, mix, select, smoothstep, step, uv, vec3 } from "three/tsl";
 import { nightUniform, windowLitUniform } from "./atmosphere";
 import { roadClass } from "./palette";
 import type { Terrain } from "./terrain";
@@ -14,43 +15,6 @@ import { pairs, type SandboxData } from "./types";
 const ON_CHANCE: Record<string, number> = { commercial: 0.95, retail: 0.95, residential: 0.8, public: 0.6, other: 0.5, industrial: 0.2 };
 /** 路灯间距（米） */
 const LAMP_SPACING: Record<string, number> = { motorway: 70, trunk: 70, avenue: 60, primary: 80 };
-
-const vertex = `
-  attribute float aSeed;
-  attribute float aChance;
-  uniform float uNight;
-  uniform float uLit;
-  uniform float uPixel;
-  varying float vAlpha;
-  varying float vSeed;
-  void main() {
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    float dist = -mv.z;
-    // 近处隐去（交给窗户和剪影），远处才是光点
-    float far = smoothstep(2200.0, 5200.0, dist);
-    // 亮灯比例随时间（黄昏渐亮、深夜熄掉一部分）；aChance 为负表示路灯，整夜常亮
-    float on = aChance < 0.0 ? 1.0 : step(aSeed, aChance * clamp(uLit * 3.2, 0.0, 1.0));
-    vAlpha = smoothstep(0.15, 0.6, uNight) * far * on;
-    vSeed = aSeed;
-    gl_PointSize = uPixel * mix(1.6, 2.6, fract(aSeed * 13.7)) * clamp(14000.0 / dist, 0.7, 1.0);
-    gl_Position = projectionMatrix * mv;
-    if (vAlpha < 0.01) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-  }
-`;
-const fragment = `
-  varying float vAlpha;
-  varying float vSeed;
-  void main() {
-    float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.1, d) * vAlpha;
-    if (a < 0.01) discard;
-    // 暖色：橙到暖黄，偶尔一点粉
-    float t = fract(vSeed * 7.31);
-    vec3 color = mix(vec3(1.0, 0.55, 0.18), vec3(1.0, 0.82, 0.42), t);
-    color = mix(color, vec3(1.0, 0.5, 0.45), step(0.93, fract(vSeed * 3.17)));
-    gl_FragColor = vec4(color * 1.6, a);
-  }
-`;
 
 export function buildCityDots(data: SandboxData, terrain: Terrain) {
   const positions: number[] = [];
@@ -89,20 +53,28 @@ export function buildCityDots(data: SandboxData, terrain: Terrain) {
     }
   }
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute("aSeed", new THREE.Float32BufferAttribute(seeds, 1));
-  geometry.setAttribute("aChance", new THREE.Float32BufferAttribute(chances, 1));
-  const material = new THREE.ShaderMaterial({
-    uniforms: { uNight: nightUniform, uLit: windowLitUniform, uPixel: { value: Math.min(window.devicePixelRatio, 2) } },
-    vertexShader: vertex,
-    fragmentShader: fragment,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    fog: false,
-  });
-  const points = new THREE.Points(geometry, material);
+  // WebGPU 不支持大于 1 像素的点：每个光点是一个实例化的小方片，固定屏幕像素大小
+  const count = seeds.length;
+  const position = instancedBufferAttribute(new THREE.InstancedBufferAttribute(new Float32Array(positions), 3), "vec3") as unknown as ReturnType<typeof vec3>;
+  const aSeed = instancedBufferAttribute(new THREE.InstancedBufferAttribute(new Float32Array(seeds), 1), "float") as unknown as ReturnType<typeof float>;
+  const aChance = instancedBufferAttribute(new THREE.InstancedBufferAttribute(new Float32Array(chances), 1), "float") as unknown as ReturnType<typeof float>;
+  const material = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, sizeAttenuation: false });
+  material.positionNode = position;
+  const dist = length(position.sub(cameraPosition));
+  // 近处隐去（交给窗户和剪影），远处才是光点
+  const far = smoothstep(2200.0, 5200.0, dist);
+  // 亮灯比例随时间（黄昏渐亮、深夜熄掉一部分）；aChance 为负表示路灯，整夜常亮
+  const on = select(aChance.lessThan(0), float(1), step(aSeed, aChance.mul(clamp(windowLitUniform.mul(3.2), 0, 1))));
+  const alpha = smoothstep(0.15, 0.6, nightUniform).mul(far).mul(on);
+  material.sizeNode = mix(1.6, 2.6, fract(aSeed.mul(13.7))).mul(clamp(float(14000).div(dist), 0.7, 1.0));
+  // 暖色：橙到暖黄，偶尔一点粉
+  const t = fract(aSeed.mul(7.31));
+  const warm = mix(vec3(1.0, 0.55, 0.18), vec3(1.0, 0.82, 0.42), t);
+  material.colorNode = mix(warm, vec3(1.0, 0.5, 0.45), step(0.93, fract(aSeed.mul(3.17)))).mul(1.6);
+  material.opacityNode = smoothstep(0.5, 0.1, length(uv().sub(0.5))).mul(alpha);
+  material.alphaTest = 0.01;
+  const points = new THREE.Sprite(material);
+  points.count = count;
   points.name = "city-dots";
   points.frustumCulled = false;
   points.renderOrder = 3;

@@ -1,4 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from 'three/webgpu';
+import { abs, float, max, mix, positionLocal, pow, sin, uniform, vec3 } from 'three/tsl';
+import { addColorMod } from '../scene/nodes';
 import data from '../../../public/sandbox/landmarks/guangming-mass-sports-center.json';
 import {landmarkKit,scaled,circle,facade,type LL,type P,type ColorKey} from './_landmark-kit';
 import {trail,bench,lamp} from './_park-details';
@@ -95,18 +97,12 @@ export function buildGuangmingMassSportsCenter(ctx:{project:(lngLat:LL)=>THREE.V
  const model=k.finish(),details=poolDetails.finish();details.position.set(0,0,0);model.add(details);
  // 无贴图的程序化水波：保留MeshStandardMaterial光照，仅给水材质注入缓慢变化的色差。
  const water=model.children.find(o=>o.name.endsWith('/water')) as THREE.Mesh;
- if(water){const material=water.material as THREE.MeshStandardMaterial,time={value:0};material.roughness=.4;material.metalness=0;
-  material.onBeforeCompile=shader=>{shader.uniforms.poolTime=time;
-   shader.vertexShader='varying vec3 poolPosition;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\npoolPosition=position;');
-   shader.fragmentShader='uniform float poolTime; varying vec3 poolPosition;\n'+shader.fragmentShader;
-   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-    vec2 p=poolPosition.xz;
-    float a=sin(p.x*.38+sin(p.y*.29+poolTime*.32)*1.2+poolTime*.45);
-    float b=sin(p.y*.43+sin(p.x*.26-poolTime*.24)*1.1-poolTime*.36);
-    float ripple=pow(max(0.0,1.0-abs(a+b)*.7),12.0);
-    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.52,.89,1.0),ripple*.32);
-   `);
-  };material.customProgramCacheKey=()=> 'sports-pool-ripples-v1';
+ if(water){const material=water.material as THREE.MeshStandardMaterial,time=uniform(0);material.roughness=.4;material.metalness=0;
+  addColorMod(material,rgb=>{const p=positionLocal.xz,t=time;
+   const a=sin(p.x.mul(.38).add(sin(p.y.mul(.29).add(t.mul(.32))).mul(1.2)).add(t.mul(.45)));
+   const b=sin(p.y.mul(.43).add(sin(p.x.mul(.26).sub(t.mul(.24))).mul(1.1)).sub(t.mul(.36)));
+   const ripple=pow(max(0,float(1).sub(abs(a.add(b)).mul(.7))),12.0);
+   return mix(rgb,vec3(.52,.89,1.0),ripple.mul(.32)) as unknown as typeof rgb;});
   water.onBeforeRender=()=>{time.value=performance.now()/1000;};
  }
  model.userData.animatedWater=true;

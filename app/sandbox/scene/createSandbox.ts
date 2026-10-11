@@ -1,16 +1,13 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { abs, cameraFar, cameraNear, clamp, perspectiveDepthToViewZ, smoothstep, unpackRGBToNormal, packNormalToRGB, dot, float, mix, mrt, normalView, output, pass, sample, screenUV, uniform, vec2, vec3, vec4 } from "three/tsl";
+import { ao } from "three/examples/jsm/tsl/display/GTAONode.js";
+import { bloom as bloomNode } from "three/examples/jsm/tsl/display/BloomNode.js";
+import { gaussianBlur } from "three/examples/jsm/tsl/display/GaussianBlurNode.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { GTAOPass } from "three/examples/jsm/postprocessing/GTAOPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
-import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { HorizontalTiltShiftShader } from "three/examples/jsm/shaders/HorizontalTiltShiftShader.js";
-import { VerticalTiltShiftShader } from "three/examples/jsm/shaders/VerticalTiltShiftShader.js";
-import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
-import { createAtmosphere, glowColor, glowFromVertexColor, GradeShader } from "./atmosphere";
+import { createAtmosphere, createGrade, glowColor, glowFromVertexColor } from "./atmosphere";
+import { createVolumeFog } from "./volumeFog";
+import { upgradeWater } from "./waterGpu";
 import { buildBuildings } from "./buildings";
 import { buildClouds, buildTrees } from "./decor";
 import { buildBoundaryLine, buildExpressways, buildRoads, buildWater, expresswayGrowth, roadGrowth } from "./features";
@@ -120,14 +117,17 @@ export async function createSandbox(mount: HTMLElement, labelClasses: LabelClass
   const dem = new Int16Array(demBuffer);
 
   // ---------- 渲染器 ----------
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  // WebGPU 优先；不支持的浏览器（或 ?webgl=1）自动用 WebGL2 后端，同一套节点材质
+  const forceWebGL = new URLSearchParams(window.location.search).has("webgl");
+  const renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: "high-performance", forceWebGL });
+  await renderer.init();
   const isSmall = mount.clientWidth < 768;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmall ? 1.5 : 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   mount.appendChild(renderer.domElement);
   const labelRenderer = new CSS2DRenderer();
   labelRenderer.domElement.style.position = "absolute";
@@ -389,31 +389,53 @@ const express = isGM
     if (target) goTo(poiNames.has(name) ? viewPose(target, 900, 32, 30) : viewPose(target, 3600, 36, 24));
   };
   goTo(poses.miniature(), true);
-  if (process.env.NODE_ENV !== "production") (window as unknown as { __sandbox: unknown }).__sandbox = { scene, camera, controls, metro: metroSystem, terrain, story: () => story, watershed: () => watershedView };
+  if (process.env.NODE_ENV !== "production") (window as unknown as { __sandbox: unknown }).__sandbox = { scene, camera, controls, metro: metroSystem, terrain, story: () => story, watershed: () => watershedView, renderer, gpu: () => ({ waterGpu, volumeFog, pipeline, gtao }) };
 
-  // ---------- 后处理 ----------
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const gtao = new GTAOPass(scene, camera, 1, 1);
-  gtao.updateGtaoMaterial({ radius: 60, distanceExponent: 1.4, thickness: 20, scale: 1, samples: 12 });
-  gtao.blendIntensity = 0.85;
-  composer.addPass(gtao);
-  const tiltH = new ShaderPass(HorizontalTiltShiftShader);
-  const tiltV = new ShaderPass(VerticalTiltShiftShader);
-  tiltH.uniforms.r.value = 0.52;
-  tiltV.uniforms.r.value = 0.52;
-  composer.addPass(tiltH);
-  composer.addPass(tiltV);
-  const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0, 0.5, 0.62);
-  bloom.enabled = false;
-  composer.addPass(bloom);
-  const vignette = new ShaderPass(VignetteShader);
-  vignette.uniforms.offset.value = 0.9;
-  vignette.uniforms.darkness.value = 0.9;
-  composer.addPass(vignette);
-  const grade = new ShaderPass(GradeShader);
-  composer.addPass(grade);
-  composer.addPass(new OutputPass());
+  // ---------- 后处理（节点链，等价于原来的 GTAO → 移轴 → 泛光 → 暗角 → 全局调色 → 输出） ----------
+  const pipeline = new THREE.RenderPipeline(renderer);
+  // 不做多重采样：GTAO 要读普通深度图（原来的 EffectComposer 渲染目标也没有多重采样）
+  const scenePass = pass(scene, camera, { samples: 0 });
+  // 额外输出法线（给 AO）
+  scenePass.setMRT(mrt({ output, normal: packNormalToRGB(normalView) }));
+  const sceneColor = scenePass.getTextureNode("output");
+  const sceneNormal = sample((uv) => unpackRGBToNormal(scenePass.getTextureNode("normal").sample(uv as ReturnType<typeof vec2>)));
+  const gtao = ao(scenePass.getTextureNode("depth"), sceneNormal, camera);
+  gtao.radius.value = 60;
+  gtao.distanceExponent.value = 1.4;
+  gtao.thickness.value = 20;
+  gtao.scale.value = 1;
+  gtao.samples.value = 12;
+  gtao.resolutionScale = 1; // 原来的 GTAOPass 是全分辨率
+  const uAO = uniform(0.85); // 原 GTAO blendIntensity
+  const aoTerm = gtao.getTextureNode().sample(screenUV).r;
+  // 远处（全深圳地形、远山远海）不做 AO：大片平坦面在远处深度精度不够，AO 会随镜头跳动闪烁。
+  // 天空穹顶不写深度，本来就不参与
+  const viewZ = perspectiveDepthToViewZ(scenePass.getTextureNode("depth").sample(screenUV).r, cameraNear, cameraFar);
+  const aoMask = float(1).sub(smoothstep(18000, 32000, viewZ.negate()));
+  const aoLit = sceneColor.rgb.mul(mix(float(1), aoTerm, uAO.mul(aoMask)));
+  // 体积雾（晨雾、雾天、雨雪天）：按雾的浓度把画面混向雾色
+  const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z));
+  const lit = mix(aoLit, volumeFog.color, volumeFog.veil);
+  // 移轴：离焦点线（画面 52% 高度处）越远越糊。原来的水平 + 竖直移轴在画面最边缘也只糊约 3 像素，这里保持同样的轻度
+  const uTilt = uniform(1);
+  const tiltBlur = gaussianBlur(vec4(lit, 1.0), null, 1.2, { resolutionScale: 0.5 });
+  const tiltK = clamp(abs(screenUV.y.sub(0.48)).mul(1.9), 0, 1).mul(uTilt);
+  const tilted = mix(lit, tiltBlur.rgb, tiltK);
+  const uBloom = uniform(0);
+  const bloomed = tilted.add(bloomNode(vec4(tilted, 1.0), 1, 0.5, 0.62).rgb.mul(uBloom));
+  // 暗角（同 VignetteShader：offset 0.9）
+  const vignetteUniforms = { darkness: uniform(0.9) };
+  const vuv = screenUV.sub(0.5).mul(0.9);
+  const vignetted = mix(bloomed, vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv));
+  const grade = createGrade();
+  const graded = grade.apply(vignetted);
+  const fullOutput = vec4(graded, 1.0);
+  // 「流畅」画质：不算 AO 和移轴
+  const lightOutput = vec4(grade.apply(mix(mix(sceneColor.rgb, volumeFog.color, volumeFog.veil).add(bloomNode(sceneColor, 1, 0.5, 0.62).rgb.mul(uBloom)), vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv))), 1.0);
+  pipeline.outputNode = fullOutput;
+  // 原来的 bloom / vignette / grade 接口（atmosphere 在用）
+  const bloom = { enabled: false, get strength() { return uBloom.value; }, set strength(v: number) { uBloom.value = this.enabled ? v : 0; } };
+  const vignette = { uniforms: vignetteUniforms };
   const waterMaterials: { material: THREE.MeshStandardMaterial; day: string; night: string }[] = [];
   water.traverse((object) => {
     const material = (object as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
@@ -434,22 +456,22 @@ const express = isGM
     grade,
   });
   atmosphere.update(0);
+  // 水面换成 MVP 的分级水面（倒影、深浅、波纹、雨点）；底色仍跟着 atmosphere 改的原水色走
+  const waterGpu = upgradeWater(water, data, terrain.extent, scene, waterMaterials[0]?.material);
+  for (const m of waterGpu.materials) terrain.maskMaterial(m);
+
 
   const setEffects = (enabled: boolean) => {
-    gtao.enabled = enabled;
-    tiltH.enabled = enabled;
-    tiltV.enabled = enabled;
+    pipeline.outputNode = enabled ? fullOutput : lightOutput;
+    pipeline.needsUpdate = true;
   };
   if (isSmall) setEffects(false);
 
   // 夜里画面的内容是一个个小光点：移轴模糊会把它们糊成一团，AO 只会把暗处弄脏 → 随夜间系数减弱
-  const tiltBase = { h: 0, v: 0 };
-  const gtaoBlend = gtao.blendIntensity;
   const updateNightEffects = () => {
     const n = nightUniform.value;
-    tiltH.uniforms.h.value = tiltBase.h * (1 - 0.85 * n);
-    tiltV.uniforms.v.value = tiltBase.v * (1 - 0.85 * n);
-    gtao.blendIntensity = gtaoBlend * (1 - n);
+    uTilt.value = 1 - 0.85 * n;
+    uAO.value = 0.85 * (1 - n);
   };
   const resize = () => {
     const width = mount.clientWidth;
@@ -458,9 +480,7 @@ const express = isGM
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     labelRenderer.setSize(width, height);
-    composer.setSize(width, height);
-    tiltBase.h = 1.6 / width;
-    tiltBase.v = 1.6 / height;
+
   };
   resize();
   window.addEventListener("resize", resize);
@@ -489,24 +509,6 @@ const express = isGM
 
   // ---------- 舞台光（讲解时照亮主体板块） ----------
   const stage = createStageLight(scene, terrain);
-  // GTAO 的法线/深度预渲染会把半透明光柱当成实体，产生暗晕：渲染 AO 时临时隐藏光柱
-  const gtaoRender = gtao.render.bind(gtao);
-  // 全深圳地形也不参与 AO：远处大片平坦的海面、平原深度精度不够，AO 会算出随镜头跳动的方块噪点（海面闪烁）
-  const szTerrainGroup = scene.getObjectByName("shenzhen-terrain");
-  // 光影模式的天空穹顶也不参与 AO（否则天空被当成一堵远墙，地形边缘出黑边）
-  const skyDome = scene.getObjectByName("sky-dome");
-  gtao.render = (...args: Parameters<typeof gtao.render>) => {
-    const visible = stage.group.visible;
-    const szVisible = szTerrainGroup?.visible ?? false;
-    const domeVisible = skyDome?.visible ?? false;
-    stage.group.visible = false;
-    if (szTerrainGroup) szTerrainGroup.visible = false;
-    if (skyDome) skyDome.visible = false;
-    gtaoRender(...args);
-    stage.group.visible = visible;
-    if (szTerrainGroup) szTerrainGroup.visible = szVisible;
-    if (skyDome) skyDome.visible = domeVisible;
-  };
 
   // ---------- 讲解剧本 ----------
   const visibleMetroLines = new Set<string>(metroSystem.lines);
@@ -1260,9 +1262,11 @@ const express = isGM
     // 讲地铁时隐藏片区名，避免压住站名
     for (const label of landmarkLabels) label.visible = labelsOn && stationFocus.size === 0 && !quietLabels;
     atmosphere.followCamera(camera.position);
+    waterGpu.update(controls.target);
+    volumeFog.update(controls.target, distance, Math.max(terrain.extent.maxX - terrain.extent.minX, terrain.extent.maxZ - terrain.extent.minZ) * 0.6);
     updateNightEffects();
     for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength;
-    composer.render();
+    pipeline.render();
     labelRenderer.render(scene, camera);
     frame = requestAnimationFrame(render);
   };
@@ -1320,7 +1324,7 @@ const express = isGM
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       controls.dispose();
-      composer.dispose();
+      pipeline.dispose();
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
         mesh.geometry?.dispose();

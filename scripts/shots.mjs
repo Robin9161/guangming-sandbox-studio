@@ -49,10 +49,18 @@ async function shoot(state) {
     const ws = new WebSocket(target.webSocketDebuggerUrl);
     await new Promise((r) => ws.addEventListener("open", r));
     let id = 0; const pending = new Map();
-    ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } });
+    const errors = [];
+    ws.addEventListener("message", (e) => {
+      const m = JSON.parse(e.data);
+      if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
+      // 收集控制台报错和未捕获异常
+      if (m.method === "Runtime.exceptionThrown") errors.push(String(m.params.exceptionDetails?.exception?.description ?? m.params.exceptionDetails?.text).slice(0, 1400));
+      if (m.method === "Runtime.consoleAPICalled" && (m.params.type === "error" || m.params.type === "warning")) errors.push(`[${m.params.type}] ` + m.params.args.map((a) => a.value ?? a.description ?? "").join(" ").slice(0, 1400));
+    });
     const send = (method, params = {}) => new Promise((r) => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
     const evaluate = async (expression) => (await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.result?.value;
-    await send("Page.navigate", { url: base + state.query });
+    await send("Runtime.enable");
+    await send("Page.navigate", { url: base + state.query + (process.env.EXTRA ? (state.query ? "&" : "?") + process.env.EXTRA : "") });
     // 等到面板显示「已就绪」（最多 60 秒）
     for (let i = 0; i < 120; i++) { if (await evaluate(`document.body.innerText.includes("已就绪")`)) break; await sleep(500); }
     await sleep(3000);
@@ -61,12 +69,12 @@ async function shoot(state) {
     const perf = await evaluate(`(async () => {
       let frames = 0, worst = 0, last = performance.now(); const t0 = last;
       await new Promise((done) => { const f = (now) => { frames++; worst = Math.max(worst, now - last); last = now; if (now - t0 < 6000) requestAnimationFrame(f); else done(); }; requestAnimationFrame(f); });
-      return { fps: +(frames * 1000 / (last - t0)).toFixed(1), worstFrameMs: +worst.toFixed(1), webgpu: !!document.querySelector("canvas")?.getContext && !!navigator.gpu };
+      return { fps: +(frames * 1000 / (last - t0)).toFixed(1), worstFrameMs: +worst.toFixed(1), ready: document.body.innerText.includes("已就绪") };
     })()`);
     const shot = await send("Page.captureScreenshot", { format: "jpeg", quality: 82 });
     writeFileSync(join(outDir, `${state.name}.jpg`), Buffer.from(shot.result.data, "base64"));
     ws.close();
-    return { name: state.name, ran, ...perf };
+    return { name: state.name, ran, ...perf, errors: [...new Set(errors)].slice(0, 12) };
   } finally { try { chrome.kill("SIGKILL"); } catch {} }
 }
 

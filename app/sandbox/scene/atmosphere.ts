@@ -1,49 +1,34 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { abs, color, dot, float, Fn, instancedBufferAttribute, luminance, max, mix, normalize, positionLocal, pow, smoothstep, uniform, vec3, vertexColor } from "three/tsl";
+import { addEmissive } from "./nodes";
 import { night as nightStyle, sky, water as waterStyle } from "./palette";
 import { createLook, evalLook, MOODS, RESTRAINT } from "./artPalette";
 import { applyWeatherToLook, weatherState } from "./weather";
 import { weatherShadingUniforms } from "./weatherShading";
 
 /** 全场景共享的昼夜系数：0 = 白天，1 = 夜晚。着色器直接读这个 uniform。 */
-export const nightUniform = { value: 0 };
+export const nightUniform = uniform(0);
 /** 夜里亮灯窗户的比例（0–1）。光影模式下随时间变化：黄昏逐渐亮起，深夜熄掉一部分 */
-export const windowLitUniform = { value: 0.24 };
+export const windowLitUniform = uniform(0.24);
 
 /** 让带顶点色的材质在夜里按自身颜色发光（地铁桥面、站点等） */
 export function glowFromVertexColor(material: THREE.MeshStandardMaterial, strength: number, dayStrength = 0) {
-  const previous = material.onBeforeCompile;
-  material.onBeforeCompile = (shader, renderer) => {
-    previous.call(material, shader, renderer);
-    shader.uniforms.uNight = nightUniform;
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform float uNight;")
-      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>\ntotalEmissiveRadiance += vColor.rgb * (${dayStrength.toFixed(3)} * (1.0 - uNight) + uNight * ${strength.toFixed(3)});`);
-  };
-  material.needsUpdate = true;
+  // 白天 dayStrength、夜里 strength：day·(1−n) + n·strength = day + n·(strength − day)
+  addEmissive(material, vec3(vertexColor()).mul(nightUniform.mul(strength - dayStrength).add(dayStrength)));
 }
 
 /** 让材质在夜里发出固定颜色的光（道路路灯光等） */
 export function glowColor(material: THREE.MeshStandardMaterial, hex: string, strength: number) {
-  const color = new THREE.Color(hex);
-  const previous = material.onBeforeCompile;
-  material.onBeforeCompile = (shader, renderer) => {
-    previous.call(material, shader, renderer);
-    shader.uniforms.uNight = nightUniform;
-    shader.uniforms.uGlow = { value: color };
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform float uNight;\nuniform vec3 uGlow;")
-      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGlow * uNight * ${strength.toFixed(3)};`);
-  };
-  material.needsUpdate = true;
+  addEmissive(material, color(hex).mul(nightUniform).mul(strength), "gc");
 }
 
 type Refs = {
   scene: THREE.Scene;
-  renderer: THREE.WebGLRenderer;
+  renderer: THREE.WebGPURenderer;
   sun: THREE.DirectionalLight;
   hemi: THREE.HemisphereLight;
   bloom: { enabled: boolean; strength: number };
-  vignette: { uniforms: Record<string, THREE.IUniform> };
+  vignette: { uniforms: { darkness: { value: number } } };
   tinted: { material: THREE.MeshStandardMaterial; day: string; night: string }[];
   clouds: THREE.MeshStandardMaterial;
   radius: number;
@@ -51,79 +36,48 @@ type Refs = {
   center: THREE.Vector3;
   sunDistance: number;
   /** 全局调色 pass 的 uniforms（光影模式用） */
-  grade: { uniforms: Record<string, THREE.IUniform> };
+  grade: { uniforms: ReturnType<typeof createGrade>["uniforms"] };
 };
 
 /** 全局调色：按亮度在暗部色和亮部色之间着色，再调饱和度。整帧统一到同一个色调里（光影模式） */
-export const GradeShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    uShadow: { value: new THREE.Color(1, 1, 1) },
-    uHigh: { value: new THREE.Color(1, 1, 1) },
-    uAmount: { value: 0 },
-    uSat: { value: 1 },
-  },
-  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-  fragmentShader: `
-    uniform sampler2D tDiffuse;
-    uniform vec3 uShadow;
-    uniform vec3 uHigh;
-    uniform float uAmount;
-    uniform float uSat;
-    varying vec2 vUv;
-    void main() {
-      vec4 texel = texture2D(tDiffuse, vUv);
-      vec3 c = texel.rgb;
-      const vec3 W = vec3(0.2126, 0.7152, 0.0722);
-      float l = dot(c, W);
-      // 暗部偏暗部色、亮部偏亮部色；两种色都已归一到亮度 1，只改色相不改明暗。
-      // 以相乘为主（保留绿地、水、建筑之间的色相差），再少量往同一色调上拉
-      vec3 tint = mix(uShadow, uHigh, smoothstep(0.02, 0.55, l));
-      c = mix(c, c * tint, uAmount);
-      c = mix(c, l * tint, uAmount * 0.2);
-      float l2 = dot(c, W);
-      c = max(vec3(0.0), mix(vec3(l2), c, uSat));
-      gl_FragColor = vec4(c, texel.a);
-    }
-  `,
-};
+export function createGrade() {
+  const uniforms = { uShadow: uniform(new THREE.Color(1, 1, 1)), uHigh: uniform(new THREE.Color(1, 1, 1)), uAmount: uniform(0), uSat: uniform(1) };
+  // 暗部偏暗部色、亮部偏亮部色；两种色都已归一到亮度 1，只改色相不改明暗。
+  // 以相乘为主（保留绿地、水、建筑之间的色相差），再少量往同一色调上拉
+  const apply = (input: unknown) => Fn(() => {
+    const c = vec3(input as ReturnType<typeof vec3>).toVar();
+    const l = luminance(c);
+    const tint = mix(uniforms.uShadow, uniforms.uHigh, smoothstep(0.02, 0.55, l));
+    c.assign(mix(c, c.mul(tint), uniforms.uAmount));
+    c.assign(mix(c, tint.mul(l), uniforms.uAmount.mul(0.2)));
+    const l2 = luminance(c);
+    return max(vec3(0), mix(vec3(l2), c, uniforms.uSat));
+  })();
+  return { uniforms, apply };
+}
 
 // 天空穹顶（光影模式）：按视线方向的高度角取天顶 / 天中 / 地平线色，太阳方向加光晕。
-// 地平线以下全是地平线色（= 雾色），沙盘边缘溶进同一片空气里。
-const domeVertex = `
-  varying vec3 vDir;
-  void main() {
-    vDir = normalize(position);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-const domeFragment = `
-  uniform vec3 uTop;
-  uniform vec3 uMid;
-  uniform vec3 uHorizon;
-  uniform vec3 uFog;
-  uniform vec3 uSun;
-  uniform vec3 uSunDir;
-  uniform float uGlow;
-  uniform float uSunUp;
-  varying vec3 vDir;
-  void main() {
-    vec3 dir = normalize(vDir);
-    float y = dir.y;
-    // 地平线以下是雾色（远山、沙盘边缘溶进去的颜色），地平线上方一窄条是天边色
-    vec3 col = mix(uFog, uHorizon, smoothstep(-0.04, 0.0, y));
-    col = mix(col, uMid, smoothstep(0.0, 0.2, y));
-    col = mix(col, uTop, smoothstep(0.2, 0.8, y));
-    float s = max(dot(dir, normalize(uSunDir)), 0.0);
+// 地平线以下全是地平线色（= 雾色），沙盘边缘溶进同一片空气里。穹顶跟着镜头走，局部坐标方向即视线方向。
+function domeMaterial() {
+  const u = { uTop: uniform(new THREE.Color()), uMid: uniform(new THREE.Color()), uHorizon: uniform(new THREE.Color()), uFog: uniform(new THREE.Color()), uSun: uniform(new THREE.Color()), uSunDir: uniform(new THREE.Vector3(0, 1, 0)), uGlow: uniform(0), uSunUp: uniform(0) };
+  const material = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false });
+  material.colorNode = Fn(() => {
+    const dir = normalize(positionLocal);
+    const y = dir.y;
+    const col = mix(u.uFog, u.uHorizon, smoothstep(-0.04, 0.0, y)).toVar();
+    col.assign(mix(col, u.uMid, smoothstep(0.0, 0.2, y)));
+    col.assign(mix(col, u.uTop, smoothstep(0.2, 0.8, y)));
+    const s = max(dot(dir, normalize(u.uSunDir)), 0.0);
     // 宽光晕（日出日落时更大更亮）+ 窄光晕 + 日盘
-    float halo = pow(s, 6.0) * (0.10 + 0.45 * uGlow) + pow(s, 48.0) * 0.35;
-    float disc = smoothstep(0.99955, 0.9998, s);
+    const halo = pow(s, 6.0).mul(u.uGlow.mul(0.45).add(0.1)).add(pow(s, 48.0).mul(0.35));
+    const disc = smoothstep(0.99955, 0.9998, s);
     // 地平线附近的空气被阳光染色
-    float band = (1.0 - smoothstep(0.0, 0.25, abs(y))) * pow(s, 2.0) * 0.35 * uGlow;
-    col += uSun * (halo * mix(0.35, 1.0, uSunUp) + band) + uSun * disc * mix(0.6, 2.2, uSunUp);
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
+    const band = float(1).sub(smoothstep(0.0, 0.25, abs(y))).mul(pow(s, 2.0)).mul(0.35).mul(u.uGlow);
+    col.addAssign(u.uSun.mul(halo.mul(mix(0.35, 1.0, u.uSunUp)).add(band)).add(u.uSun.mul(disc).mul(mix(0.6, 2.2, u.uSunUp))));
+    return col;
+  })();
+  return { material, uniforms: u };
+}
 
 export function createAtmosphere(refs: Refs) {
   const { scene, renderer, sun, hemi } = refs;
@@ -150,10 +104,12 @@ export function createAtmosphere(refs: Refs) {
     const r = refs.radius;
     starPositions.set([Math.sin(phi) * Math.cos(theta) * r, Math.cos(phi) * r, Math.sin(phi) * Math.sin(theta) * r], i * 3);
   }
-  const starGeometry = new THREE.BufferGeometry();
-  starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-  const starMaterial = new THREE.PointsMaterial({ color: "#ffffff", size: 2.2, sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false });
-  const stars = new THREE.Points(starGeometry, starMaterial);
+  // WebGPU 不支持大于 1 像素的点：用实例化的小方片，每颗星 2.2 像素
+  const starMaterial = new THREE.PointsNodeMaterial({ color: "#ffffff", sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false });
+  starMaterial.positionNode = instancedBufferAttribute(new THREE.InstancedBufferAttribute(starPositions, 3), "vec3") as unknown as ReturnType<typeof vec3>;
+  starMaterial.sizeNode = float(2.2);
+  const stars = new THREE.Sprite(starMaterial);
+  stars.count = starCount;
   stars.frustumCulled = false;
   scene.add(stars);
 
@@ -203,24 +159,14 @@ export function createAtmosphere(refs: Refs) {
   };
 
   // ---------- 光影模式 ----------
-  const dome = new THREE.Mesh(
-    new THREE.SphereGeometry(refs.radius * 0.95, 48, 24),
-    new THREE.ShaderMaterial({
-      uniforms: { uTop: { value: new THREE.Color() }, uMid: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uFog: { value: new THREE.Color() }, uSun: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uGlow: { value: 0 }, uSunUp: { value: 0 } },
-      vertexShader: domeVertex,
-      fragmentShader: domeFragment,
-      side: THREE.BackSide,
-      depthWrite: false,
-      depthTest: false,
-      fog: false,
-    }),
-  );
+  const domeParts = domeMaterial();
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(refs.radius * 0.95, 48, 24), domeParts.material);
   dome.name = "sky-dome";
   dome.renderOrder = -10;
   dome.frustumCulled = false;
   dome.visible = false;
   scene.add(dome);
-  const domeU = (dome.material as THREE.ShaderMaterial).uniforms;
+  const domeU = domeParts.uniforms;
   const legacySunPosition = sun.position.clone();
   const look = createLook();
   const gradeU = refs.grade.uniforms;
@@ -386,7 +332,6 @@ export function createAtmosphere(refs: Refs) {
       background.dispose();
       dome.geometry.dispose();
       (dome.material as THREE.Material).dispose();
-      starGeometry.dispose();
       starMaterial.dispose();
     },
   };

@@ -1,4 +1,5 @@
-import * as THREE from 'three';
+import * as THREE from 'three/webgpu';
+import { attribute, pow } from 'three/tsl';
 import {glowColor,nightUniform} from '../scene/atmosphere';
 import data from '../../../public/sandbox/landmarks/guangming-lake.json';
 import {landmarkKit,circle,mean,scaled,type LandmarkContext,type LL,type P,type ColorKey} from './_landmark-kit';
@@ -131,12 +132,7 @@ export function buildGuangmingLake(ctx:LandmarkContext):THREE.Group{
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(lightPositions,3));geometry.setAttribute('lampFalloff',new THREE.Float32BufferAttribute(lightFalloff,1));geometry.computeVertexNormals();
  const material=new THREE.MeshStandardMaterial({color:'#ffe2b0',roughness:.65,transparent:true,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1});
  glowColor(material,'#ffe2b0',1.35);
- const previous=material.onBeforeCompile;
- material.onBeforeCompile=(shader,renderer)=>{
-  previous.call(material,shader,renderer);shader.uniforms.uNight=nightUniform;
-  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute float lampFalloff; varying float vLampFalloff;').replace('#include <begin_vertex>','#include <begin_vertex>\nvLampFalloff=lampFalloff;');
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying float vLampFalloff;').replace('#include <dithering_fragment>','#include <dithering_fragment>\ngl_FragColor.a *= uNight * pow(vLampFalloff, 0.7) * 0.8;');
- };
+ material.opacityNode=nightUniform.mul(pow(attribute('lampFalloff','float'),0.7)).mul(0.8);
  const pools=new THREE.Mesh(geometry,material);pools.name='坝顶路灯暖光';pools.receiveShadow=true;pools.castShadow=false;group.add(pools);
  return group;
 }

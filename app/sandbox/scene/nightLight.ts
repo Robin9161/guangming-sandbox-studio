@@ -1,4 +1,6 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { diffuseColor, Fn, positionWorld, texture, uniform } from "three/tsl";
+import { addEmissive } from "./nodes";
 import { nightUniform } from "./atmosphere";
 import { roadClass } from "./palette";
 import { pairs, type SandboxData } from "./types";
@@ -28,13 +30,18 @@ const blank = new THREE.DataTexture(new Uint8Array(4), 1, 1);
 blank.needsUpdate = true;
 
 export const cityLightUniforms = {
-  uLampMap: { value: blank as THREE.Texture },
-  uActivityMap: { value: blank as THREE.Texture },
-  uCityOffset: { value: new THREE.Vector2() },
-  uCityScale: { value: new THREE.Vector2(1, 1) },
-  uLampColor: { value: new THREE.Color(LAMP_COLOR) },
+  uLampMap: texture(blank),
+  uActivityMap: texture(blank),
+  uCityOffset: uniform(new THREE.Vector2()),
+  uCityScale: uniform(new THREE.Vector2(1, 1)),
+  uLampColor: uniform(new THREE.Color(LAMP_COLOR)),
   uLampNight: nightUniform,
 };
+/** 按世界坐标 xz 取两张图的贴图坐标 */
+export const cityUv = () => positionWorld.xz.sub(cityLightUniforms.uCityOffset).mul(cityLightUniforms.uCityScale);
+/** 采样路灯图 / 活跃度图。贴图在 buildCityLight 里才生成，所以在材质编译时（Fn 里）才取当前贴图 */
+export const lampAt = Fn(() => texture(cityLightUniforms.uLampMap.value, cityUv()).r);
+export const activityAt = Fn(() => texture(cityLightUniforms.uActivityMap.value, cityUv()).r);
 
 export function buildCityLight(data: SandboxData, bounds: { minX: number; maxX: number; minZ: number; maxZ: number }) {
   const w = bounds.maxX - bounds.minX, h = bounds.maxZ - bounds.minZ;
@@ -101,36 +108,11 @@ export function buildCityLight(data: SandboxData, bounds: { minX: number; maxX: 
   return { dispose: () => { lamp.dispose(); activity.dispose(); } };
 }
 
-/** 着色器片段：按世界坐标 xz 取贴图坐标 */
-export const cityUvGlsl = "((%XZ% - uCityOffset) * uCityScale)";
-export const cityUniformsGlsl = "uniform sampler2D uLampMap;\nuniform sampler2D uActivityMap;\nuniform vec2 uCityOffset;\nuniform vec2 uCityScale;\nuniform vec3 uLampColor;\nuniform float uLampNight;";
-
-let counter = 0;
 /**
  * 路灯照亮这个材质（路面、地面、树）：夜里按路灯图把表面自身的颜色用冷白光提亮。
  * strength 控制被照亮的程度。
  */
 export function litByStreetLamps(material: THREE.MeshStandardMaterial, strength: number) {
-  const previous = material.onBeforeCompile;
-  const key = `street-lamps-${(counter += 1)}`;
-  material.onBeforeCompile = (shader, renderer) => {
-    previous.call(material, shader, renderer);
-    Object.assign(shader.uniforms, cityLightUniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nuniform vec2 uCityOffset;\nuniform vec2 uCityScale;\nvarying vec2 vLampUv;")
-      .replace("#include <project_vertex>", `#include <project_vertex>
-        vec4 lampWorld = vec4(transformed, 1.0);
-        #ifdef USE_INSTANCING
-        lampWorld = instanceMatrix * lampWorld;
-        #endif
-        lampWorld = modelMatrix * lampWorld;
-        vLampUv = ${cityUvGlsl.replace("%XZ%", "lampWorld.xz")};`);
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n${cityUniformsGlsl}\nvarying vec2 vLampUv;`)
-      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
-        totalEmissiveRadiance += diffuseColor.rgb * uLampColor * texture2D(uLampMap, vLampUv).r * uLampNight * ${strength.toFixed(3)};`);
-  };
-  const previousKey = material.customProgramCacheKey.bind(material);
-  material.customProgramCacheKey = () => `${previousKey()}|${key}`;
-  material.needsUpdate = true;
+  const u = cityLightUniforms;
+  addEmissive(material, diffuseColor.rgb.mul(u.uLampColor).mul(lampAt()).mul(u.uLampNight).mul(strength));
 }

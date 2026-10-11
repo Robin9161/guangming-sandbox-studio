@@ -1,4 +1,6 @@
-import * as THREE from "three";
+import * as THREE from "three/webgpu";
+import { mix, positionWorld, texture, uniform } from "three/tsl";
+import { addColorMod, addMask } from "./nodes";
 import { basePlate, basePlateEdge, context, exaggerate, ground, TERRAIN_SPACING } from "./palette";
 import { pairs, type SandboxData } from "./types";
 
@@ -364,26 +366,19 @@ export function buildTerrain(data: SandboxData, dem: Int16Array, opts: { seamles
   const overlayTexture = new THREE.CanvasTexture(overlayCanvas);
   overlayTexture.colorSpace = THREE.SRGBColorSpace;
   overlayTexture.flipY = false; // 画布第 0 行对应 minZ（北），与 vMaskUv 的 z→v 映射一致；默认翻转会让叠加图南北颠倒
-  const overlayOpacity = { value: 0 };
-  const maskUniforms = {
-    uOverlay: { value: overlayTexture },
-    uOverlayOpacity: overlayOpacity,
-    uMask: { value: maskTexture },
-    uMaskScale: { value: new THREE.Vector2(1 / (extent.maxX - extent.minX), 1 / (extent.maxZ - extent.minZ)) },
-    uMaskOffset: { value: new THREE.Vector2(extent.minX, extent.minZ) },
-  };
+  const overlayOpacity = uniform(0);
+  const maskScale = uniform(new THREE.Vector2(1 / (extent.maxX - extent.minX), 1 / (extent.maxZ - extent.minZ)));
+  const maskOffset = uniform(new THREE.Vector2(extent.minX, extent.minZ));
+  // 遮罩 / 叠加图坐标：世界 xz 映射到 0–1（画布第 0 行 = minZ）
+  const maskUv = () => positionWorld.xz.sub(maskOffset).mul(maskScale);
   // 无缝模式：与全深圳地形在接缝处有一圈重叠，主地形在深度上让一点，避免闪烁
   const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0, polygonOffset: seamless, polygonOffsetFactor: -1, polygonOffsetUnits: -4 });
-  material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, maskUniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nuniform vec2 uMaskScale;\nuniform vec2 uMaskOffset;\nvarying vec2 vMaskUv;")
-      .replace("#include <project_vertex>", "#include <project_vertex>\nvMaskUv = ((modelMatrix * vec4(transformed, 1.0)).xz - uMaskOffset) * uMaskScale;");
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform sampler2D uMask;\nuniform sampler2D uOverlay;\nuniform float uOverlayOpacity;\nvarying vec2 vMaskUv;")
-      .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (texture2D(uMask, vMaskUv).r < 0.5) discard;")
-      .replace("#include <color_fragment>", "#include <color_fragment>\nvec4 overlay = texture2D(uOverlay, vMaskUv);\ndiffuseColor.rgb = mix(diffuseColor.rgb, overlay.rgb, overlay.a * uOverlayOpacity);");
-  };
+  // 片元超出模型（区界 + 外扩）时丢弃；贴地叠加图（主干道、地势等讲解用）按透明度混进底色
+  addMask(material, texture(maskTexture, maskUv()).r);
+  addColorMod(material, (rgb) => {
+    const overlay = texture(overlayTexture, maskUv());
+    return mix(rgb, overlay.rgb, overlay.a.mul(overlayOpacity)) as unknown as typeof rgb;
+  });
   const surface = new THREE.Mesh(geometry, material);
   surface.receiveShadow = true;
   surface.castShadow = true;
@@ -420,27 +415,10 @@ export function buildTerrain(data: SandboxData, dem: Int16Array, opts: { seamles
   const setOverlayOpacity = (opacity: number) => { overlayOpacity.value = opacity; };
 
   // 其他图层套用同一张区界遮罩（只在无缝模式下）
-  let maskCounter = 0;
   const maskMaterial = (target: THREE.Material) => {
     if (!seamless || (target as THREE.Material & { userData: Record<string, unknown> }).userData.districtMasked) return;
     target.userData.districtMasked = true;
-    const previous = target.onBeforeCompile;
-    const key = `district-mask-${(maskCounter += 1)}`;
-    target.onBeforeCompile = (shader, renderer) => {
-      previous.call(target, shader, renderer);
-      shader.uniforms.uDMask = { value: maskTexture };
-      shader.uniforms.uDMaskScale = maskUniforms.uMaskScale;
-      shader.uniforms.uDMaskOffset = maskUniforms.uMaskOffset;
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nuniform vec2 uDMaskScale;\nuniform vec2 uDMaskOffset;\nvarying vec2 vDMaskUv;")
-        .replace("#include <project_vertex>", "#include <project_vertex>\nvDMaskUv = ((modelMatrix * vec4(transformed, 1.0)).xz - uDMaskOffset) * uDMaskScale;");
-      shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform sampler2D uDMask;\nvarying vec2 vDMaskUv;")
-        .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (texture2D(uDMask, vDMaskUv).r < 0.5) discard;");
-    };
-    const previousKey = target.customProgramCacheKey.bind(target);
-    target.customProgramCacheKey = () => `${previousKey()}|${key}`;
-    target.needsUpdate = true;
+    addMask(target, texture(maskTexture, maskUv()).r);
   };
   const distanceOutside = (x: number, z: number) => (inside(x, z) ? 0 : distanceToRing(x, z, boundary));
   return { group, heightAt, elevationAt: demAt, inside, inModel, fadeAt, isGreen, bounds, extent, baseY, setOverlay, setOverlayOpacity, distanceOutside, maskMaterial, seamless };
