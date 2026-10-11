@@ -22,12 +22,12 @@ type Key = {
 const KEYS: Key[] = [
   { h: 0, top: "#070d26", mid: "#121c44", horizon: "#25325f", sun: "#9fb4ff", sunI: 0.38, sky: "#36488a", ground: "#141a30", hemiI: 0.42, shadow: "#26306c", high: "#9aaee6", grade: 0.3, sat: 0.85, haze: 0.9, night: 1 },
   { h: 4.6, top: "#141f4e", mid: "#3a427a", horizon: "#7a6c9c", sun: "#b4b0ff", sunI: 0.5, sky: "#5f64a6", ground: "#252440", hemiI: 0.58, shadow: "#36367a", high: "#c8b2d8", grade: 0.32, sat: 0.9, haze: 1.1, night: 0.8 },
-  { h: 6.0, top: "#5574b4", mid: "#c497b4", horizon: "#f6b89a", sun: "#ff9c60", sunI: 2.0, sky: "#e2b2ba", ground: "#8a6a6c", hemiI: 0.8, shadow: "#55488a", high: "#ffc49a", grade: 0.3, sat: 1.02, haze: 1.05, night: 0.25 },
+  { h: 6.0, top: "#5574b4", mid: "#c497b4", horizon: "#f6b89a", sun: "#ff9c60", sunI: 2.9, sky: "#e2b2ba", ground: "#8a6a6c", hemiI: 0.55, shadow: "#55488a", high: "#ffc49a", grade: 0.3, sat: 1.02, haze: 1.05, night: 0.25 },
   { h: 7.6, top: "#76b2e2", mid: "#b8d6ec", horizon: "#f4e2cf", sun: "#ffd8a6", sunI: 2.6, sky: "#d6e6f4", ground: "#e8cdab", hemiI: 1.3, shadow: "#6a84b8", high: "#ffe4c0", grade: 0.3, sat: 1.0, haze: 1.1, night: 0 },
   { h: 12, top: "#6cb0e6", mid: "#a6d3f0", horizon: "#e0eff4", sun: "#fff0d6", sunI: 3.1, sky: "#cfe6fc", ground: "#f2d8b0", hemiI: 1.5, shadow: "#6e8ec0", high: "#fff2dc", grade: 0.2, sat: 1.0, haze: 0.8, night: 0 },
   { h: 15.8, top: "#68a4da", mid: "#b2d0e6", horizon: "#f0e0c4", sun: "#ffdea6", sunI: 2.85, sky: "#d8e2ee", ground: "#f0cd9e", hemiI: 1.35, shadow: "#687eb6", high: "#ffe0ac", grade: 0.3, sat: 1.02, haze: 1.0, night: 0 },
-  { h: 17.5, top: "#6c8cc6", mid: "#dcb6a0", horizon: "#ffc88a", sun: "#ffae5e", sunI: 3.2, sky: "#f0c6a8", ground: "#c09070", hemiI: 0.85, shadow: "#584e94", high: "#ffc078", grade: 0.45, sat: 1.08, haze: 1.1, night: 0 },
-  { h: 18.5, top: "#47579a", mid: "#c88a9c", horizon: "#ffa874", sun: "#ff7c4a", sunI: 2.4, sky: "#dca08e", ground: "#7a5a5a", hemiI: 0.7, shadow: "#483a86", high: "#ff9c72", grade: 0.42, sat: 1.02, haze: 1.0, night: 0.3 },
+  { h: 17.5, top: "#6c8cc6", mid: "#dcb6a0", horizon: "#ffc88a", sun: "#ffae5e", sunI: 3.6, sky: "#f0c6a8", ground: "#c09070", hemiI: 0.6, shadow: "#584e94", high: "#ffc078", grade: 0.45, sat: 1.08, haze: 1.1, night: 0 },
+  { h: 18.5, top: "#47579a", mid: "#c88a9c", horizon: "#ffa874", sun: "#ff7c4a", sunI: 3.0, sky: "#dca08e", ground: "#7a5a5a", hemiI: 0.5, shadow: "#483a86", high: "#ff9c72", grade: 0.42, sat: 1.02, haze: 1.0, night: 0.3 },
   { h: 19.4, top: "#1e2c80", mid: "#5a4aa0", horizon: "#e07aa8", fog: "#3c4aa0", sun: "#a89cff", sunI: 0.62, sky: "#6862a0", ground: "#2a2440", hemiI: 0.56, shadow: "#2e2e70", high: "#c6a0c8", grade: 0.45, sat: 0.95, haze: 1.1, night: 0.78 },
   { h: 21, top: "#0a1230", mid: "#18244e", horizon: "#2e3a68", sun: "#9fb4ff", sunI: 0.4, sky: "#3a4c8c", ground: "#161b32", hemiI: 0.44, shadow: "#28326e", high: "#9eb0e6", grade: 0.3, sat: 0.86, haze: 0.95, night: 1 },
 ];

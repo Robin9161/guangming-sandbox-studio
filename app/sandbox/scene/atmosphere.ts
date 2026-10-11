@@ -302,7 +302,8 @@ export function createAtmosphere(refs: Refs) {
       if (!art) return { near: 70000, far: 160000 };
       // 夜里雾从更远处起：近处的楼保持清晰，只让远景溶进夜空
       const k = 1 + 0.8 * look.night;
-      const near = (cameraDistance * 1.0 * k) / haze + 1500 * look.night, far = (cameraDistance * 4.2 * k) / haze + 8000;
+      // 远雾从焦点之后很远才起，近中景保持通透，光影对比不被冲淡（日出日落尤其明显）
+      const near = (cameraDistance * 2.4 * k) / haze + 1500 * look.night, far = (cameraDistance * 7.5 * k) / haze + 12000;
       // 正午马卡龙：远雾退回经典白天的 70–160 km（几乎无雾）
       return { near: THREE.MathUtils.lerp(near, 70000, macaron), far: THREE.MathUtils.lerp(far, 160000, macaron) };
     },
