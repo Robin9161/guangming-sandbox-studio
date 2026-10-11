@@ -414,8 +414,8 @@ const express = isGM
   const aoMask = float(1).sub(smoothstep(18000, 32000, viewZ.negate()));
   const aoLit = sceneColor.rgb.mul(mix(float(1), aoTerm, uAO.mul(aoMask)));
   // 体积雾（晨雾、雾天、雨雪天）：按雾的浓度把画面混向雾色
-  const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z));
-  const lit = mix(aoLit, volumeFog.color, volumeFog.veil);
+  const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z), terrain, data);
+  const lit = volumeFog.apply(aoLit);
   // 移轴：离焦点线（画面 52% 高度处）越远越糊。原来的水平 + 竖直移轴在画面最边缘也只糊约 3 像素，这里保持同样的轻度
   const uTilt = uniform(1);
   const tiltBlur = gaussianBlur(vec4(lit, 1.0), null, 1.2, { resolutionScale: 0.5 });
@@ -431,7 +431,7 @@ const express = isGM
   const graded = grade.apply(vignetted);
   const fullOutput = vec4(graded, 1.0);
   // 「流畅」画质：不算 AO 和移轴
-  const lightOutput = vec4(grade.apply(mix(mix(sceneColor.rgb, volumeFog.color, volumeFog.veil).add(bloomNode(sceneColor, 1, 0.5, 0.62).rgb.mul(uBloom)), vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv))), 1.0);
+  const lightOutput = vec4(grade.apply(mix(volumeFog.apply(sceneColor.rgb).add(bloomNode(sceneColor, 1, 0.5, 0.62).rgb.mul(uBloom)), vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv))), 1.0);
   pipeline.outputNode = fullOutput;
   // 原来的 bloom / vignette / grade 接口（atmosphere 在用）
   const bloom = { enabled: false, get strength() { return uBloom.value; }, set strength(v: number) { uBloom.value = this.enabled ? v : 0; } };
@@ -468,6 +468,7 @@ const express = isGM
   if (isSmall) setEffects(false);
 
   // 夜里画面的内容是一个个小光点：移轴模糊会把它们糊成一团，AO 只会把暗处弄脏 → 随夜间系数减弱
+  const fogSunDir = new THREE.Vector3();
   const updateNightEffects = () => {
     const n = nightUniform.value;
     uTilt.value = 1 - 0.85 * n;
@@ -1263,7 +1264,11 @@ const express = isGM
     for (const label of landmarkLabels) label.visible = labelsOn && stationFocus.size === 0 && !quietLabels;
     atmosphere.followCamera(camera.position);
     waterGpu.update(controls.target);
-    volumeFog.update(controls.target, distance, Math.max(terrain.extent.maxX - terrain.extent.minX, terrain.extent.maxZ - terrain.extent.minZ) * 0.6);
+    {
+      const fl = atmosphere.fogLight();
+      volumeFog.update(controls.target, distance, Math.max(terrain.extent.maxX - terrain.extent.minX, terrain.extent.maxZ - terrain.extent.minZ) * 0.6,
+        { dir: fogSunDir.copy(sun.position).sub(controls.target).normalize(), color: sun.color, up: fl.look.sunUp, glow: fl.look.glow, morning: fl.morning });
+    }
     updateNightEffects();
     for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength;
     pipeline.render();

@@ -208,6 +208,7 @@ export function createAtmosphere(refs: Refs) {
     look.sunDir.lerp(classicSunDir, m).normalize();
     return m;
   };
+  const fogLight = { morning: 0 };
   const applyArt = () => {
     evalLook(hour, moodChoice ?? moodAuto, look);
     const noon = applyClassicNoon();
@@ -258,8 +259,12 @@ export function createAtmosphere(refs: Refs) {
     // 贴地雾：清晨 5 点起雾、6 点半最浓、9 点散尽；「雾」天气更浓更厚。雾色取雾和天边色之间，清晨带一点暖
     const morning = dayFog * THREE.MathUtils.smoothstep(hour, 4.6, 6.2) * (1 - THREE.MathUtils.smoothstep(hour, 6.8, 9.0));
     const weatherFog = weatherState.kind === "fog" ? weatherState.level : 0;
-    gfU.uGFAmount.value = Math.max(morning * 0.75, weatherFog);
-    gfU.uGFHeight.value = THREE.MathUtils.lerp(55, 170, weatherFog >= morning * 0.75 ? 1 : 0);
+    // 雨雪天空气湿，山谷水边起雾；日出日落有一层薄霭；正午马卡龙时几乎没有
+    const wetAir = weatherState.kind === "rain" || weatherState.kind === "storm" || weatherState.kind === "snow" ? weatherState.level : 0;
+    const mist = (0.06 + 0.22 * look.glow) * (1 - macaron) * (1 - look.night * 0.5);
+    gfU.uGFAmount.value = Math.max(morning * 0.75, weatherFog, mist + 0.45 * wetAir);
+    gfU.uGFHeight.value = THREE.MathUtils.lerp(55, 170, Math.max(weatherFog, wetAir * 0.6));
+    fogLight.morning = morning;
     gfU.uGFColor.value.copy(k.fog).lerp(k.horizon, 0.5).multiplyScalar(1.1);
     gfU.uSnow.value = weatherState.snow;
   };
@@ -288,6 +293,8 @@ export function createAtmosphere(refs: Refs) {
     getMood: () => moodChoice ?? moodAuto,
     isArtNight: () => art && look.night > 0.5,
     isArt: () => art,
+    /** 体积雾的"太阳照雾"层要用：当前配色、晨雾强度 */
+    fogLight: () => ({ look, morning: fogLight.morning }),
     /** 雾的基础范围：光影模式按镜头距离推远近（远处溶进地平线色），否则沿用原来的远雾 */
     fogBase: (cameraDistance: number) => {
       if (!art) return { near: 70000, far: 160000 };
