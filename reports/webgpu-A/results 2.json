@@ -1,0 +1,257 @@
+[
+  {
+    "name": "01-光明-白天",
+    "ran": "ok",
+    "fps": 12.9,
+    "worstFrameMs": 22626.3,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "02-光明-夜晚",
+    "ran": "ok",
+    "fps": 45.6,
+    "worstFrameMs": 70.5,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    ]
+  },
+  {
+    "name": "03-光影-日出",
+    "ran": "ok",
+    "fps": 53.3,
+    "worstFrameMs": 68.3,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_992): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_992\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_990): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_990\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_992\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_992\"]).\n - While finishing [CommandEncoder \"renderContext_13\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_13\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_13\"]])\n"
+    ]
+  },
+  {
+    "name": "04-光影-正午",
+    "ran": "ok",
+    "fps": 39.1,
+    "worstFrameMs": 68,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "05-光影-黄金时刻",
+    "ran": "ok",
+    "fps": 40.4,
+    "worstFrameMs": 67.7,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "06-光影-蓝调",
+    "ran": "ok",
+    "fps": 37.1,
+    "worstFrameMs": 76.1,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "07-光影-深夜",
+    "ran": "ok",
+    "fps": 37,
+    "worstFrameMs": 70.8,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "08-光影-雨-黄金时刻",
+    "ran": "ok",
+    "fps": 31,
+    "worstFrameMs": 85.5,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "09-光影-雪-正午",
+    "ran": "ok",
+    "fps": 31.1,
+    "worstFrameMs": 87.6,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "10-光影-雾-日出",
+    "ran": "ok",
+    "fps": 31,
+    "worstFrameMs": 75.6,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "11-天际线-蓝调",
+    "ran": "ok",
+    "fps": 34,
+    "worstFrameMs": 97.4,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_406): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_406\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_404): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_404\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_406\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_406 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_404 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshBasicNodeMaterial_421): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshBasicNodeMaterial_421\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshBasicNodeMaterial_421\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshBasicNodeMaterial_421 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "12-前海-白天",
+    "ran": "ok",
+    "fps": 37.2,
+    "worstFrameMs": 92.1,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_199): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_199\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_197): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_197\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_199\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_199\"]).\n - While finishing [CommandEncoder \"renderContext_2\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_2\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_2\"]])\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_197\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_197\"]).\n - While finishing [CommandEncoder \"renderContext_2\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_199 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_197 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "13-南山-白天",
+    "ran": "ok",
+    "fps": 37.1,
+    "worstFrameMs": 64,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_210): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_210\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_208): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_208\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_210\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_210\"]).\n - While finishing [CommandEncoder \"renderContext_2\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_2\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_2\"]])\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_208\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_208\"]).\n - While finishing [CommandEncoder \"renderContext_2\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_210 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_208 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  },
+  {
+    "name": "14-宝安-白天",
+    "ran": "ok",
+    "fps": 35.8,
+    "worstFrameMs": 84,
+    "ready": true,
+    "errors": [
+      "[warning] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_116): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_116\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :9:8 error: structures must have at least one member\nstruct OutputType {\n       ^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_MeshStandardMaterial_114): [Invalid ShaderModule \"fragment\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_MeshStandardMaterial_114\"\"]).\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_116\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_116\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+      "[error] THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_114\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_MeshStandardMaterial_114\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_116 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^",
+      "[error] THREE.WebGPURenderer [renderPipeline_MeshStandardMaterial_114 / fragment error] at line 9:8: structures must have at least one member\n  struct OutputType {\n         ^"
+    ]
+  }
+]
