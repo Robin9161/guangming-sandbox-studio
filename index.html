@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>光明沙盘 Studio</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1230; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+      #panel { position: fixed; right: 16px; top: 16px; display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: rgba(255, 252, 245, 0.92); box-shadow: 0 8px 30px rgba(0,0,0,.18); width: 230px; }
+      #panel h1 { margin: 0; font-size: 15px; color: #3d4a5c; }
+      #panel small { color: #8a8f99; font-size: 11px; }
+      .row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .row b { width: 100%; font-size: 11px; color: #8a8f99; }
+      button { border: 0; padding: 6px 10px; border-radius: 999px; background: #eef2f6; color: #3c5a78; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+      button.on { background: #3d4a5c; color: #fff; }
+      canvas { display: block; width: 100vw; height: 100vh; }
+      #hud { position: fixed; left: 16px; top: 16px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.45); color: #fff; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+      #status { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; font-size: 14px; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">启动中…</div>
+    <div id="status">初始化 WebGPU…</div>
+    <div id="panel">
+      <div><h1>光明沙盘 Studio</h1><small>全区：地址后加 ?full=1</small></div>
+      <div class="row" style="align-items:center"><button id="play">❚❚</button><b style="width:auto;font-size:14px;color:#3d4a5c" id="clock">17:24</b><input id="time" type="range" min="0" max="24" step="0.05" value="17.4" style="flex:1;accent-color:#d0694b" /></div>
+      <div class="row"><b>时刻</b>
+        <button data-hour="6.3">清晨</button><button data-hour="12.5">正午</button><button data-hour="17.4" class="on">黄金时刻</button><button data-hour="19.3">蓝调</button><button data-hour="23">深夜</button>
+      </div>
+      <div class="row" id="moods"><b>日出日落氛围 · 今天：<span id="mood-name"></span></b></div>
+      <div class="row"><b>天气 · 现在：<span id="weather-name">晴</span></b>
+        <button data-weather="auto" class="on">自动</button><button data-weather="clear">晴</button><button data-weather="cloudy">多云</button><button data-weather="rain">雨</button><button data-weather="storm">雷暴</button><button data-weather="fog">雾</button><button data-weather="snow">雪</button>
+      </div>
+      <div class="row"><b>体积雾</b>
+        <button data-fog="off">关</button><button data-fog="light" class="on">薄</button><button data-fog="heavy">浓</button>
+      </div>
+      <small>拖动旋转 · 滚轮缩放 · 右键平移</small>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

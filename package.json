@@ -1,0 +1,20 @@
+{
+  "name": "guangming-sandbox-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "@types/geojson": "^7946.0.16",
+    "typescript": "5.9.3",
+    "vite": "8.0.13"
+  }
+}

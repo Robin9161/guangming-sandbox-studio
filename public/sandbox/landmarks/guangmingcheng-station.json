@@ -1,0 +1,102 @@
+{
+ "meta": {
+  "name": "光明城站（精细版）",
+  "retrievedAt": "2026-10-04",
+  "anchor": {
+   "lng": 113.9499,
+   "lat": 22.73558
+  },
+  "bearingDeg": 4,
+  "source": "OpenStreetMap 建筑轮廓（经项目 sandbox 数据管线生成的 public/sandbox/sandbox.json buildings，t=public，h=22.4m，460m×119m）；锚点取自 data/hero-landmarks.json（Esri World Imagery z18 像素定位 + OSM railway=station node 7103617869 复核，2026-08-01）",
+  "references": [
+   "assets/landmark-work/guangmingcheng-station/refs/official-station-front.jpg（深圳市交通运输局外观图）",
+   "assets/landmark-work/guangmingcheng-station/refs/eyeshenzhen-aerial.jpg（EyeShenzhen 航拍，2025-01-03）"
+  ],
+  "notes": "轮廓为站房+站台雨棚整体外轮廓；精细模型的分层、V 柱、 signage 为按参考图的建模拆分。"
+ },
+ "footprint": {
+  "height": 22.4,
+  "ring": [
+   [
+    2193.2,
+    2798.5
+   ],
+   [
+    2194.1,
+    2775.5
+   ],
+   [
+    2146.9,
+    2773.8
+   ],
+   [
+    2143.6,
+    2866.9
+   ],
+   [
+    2138.2,
+    2866.8
+   ],
+   [
+    2141.6,
+    2773.6
+   ],
+   [
+    2098.7,
+    2772
+   ],
+   [
+    2095.3,
+    2864.2
+   ],
+   [
+    2090.1,
+    2864
+   ],
+   [
+    2085.6,
+    2988.8
+   ],
+   [
+    2090.8,
+    2989
+   ],
+   [
+    2082.1,
+    3227.3
+   ],
+   [
+    2124.4,
+    3228.8
+   ],
+   [
+    2133.1,
+    2989.9
+   ],
+   [
+    2139.1,
+    2990.1
+   ],
+   [
+    2130.5,
+    3229
+   ],
+   [
+    2177.5,
+    3230.8
+   ],
+   [
+    2185.4,
+    3013
+   ],
+   [
+    2193.2,
+    3013.3
+   ],
+   [
+    2200.9,
+    2798.8
+   ]
+  ]
+ }
+}

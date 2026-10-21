@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+# 渲染输出（ProRes 视频、临时帧）不进版本库
+renders/
+*.mov
+*.mp4

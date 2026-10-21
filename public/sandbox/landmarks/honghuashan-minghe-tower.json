@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "name": "红花山公园·明和塔",
+    "retrievedAt": "2026-10-05",
+    "coordinateSystem": "WGS84",
+    "sources": [
+      {
+        "title": "深圳政府在线：红花山公园",
+        "url": "https://www.sz.gov.cn/szzt2010/gysz/csgy/content/mpost_10779030.html",
+        "evidence": "八面九层、塔高47米、红色仿宋风格、回廊和逐层收分屋檐"
+      },
+      {
+        "title": "官方实景照片",
+        "url": "https://www.sz.gov.cn/attachment/1/1334/1334237/10779030.jpg",
+        "evidence": "暗红柱梁、深色层檐、暖色顶层屋顶和细长塔刹"
+      },
+      {
+        "title": "项目已有建筑轮廓",
+        "path": "public/sandbox/sandbox.json",
+        "evidence": "塔基附近非填充四边形，h=17.7为原数据推定高度，模型不采用"
+      },
+      {
+        "title": "Esri World Imagery",
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+        "evidence": "z19 tiles x428016–428018/y228050–228052，与塔基候选轮廓核对；高塔倾斜像不当作地面锚点"
+      }
+    ],
+    "limitations": [
+      "原地标清单无独立坐标和bearingDeg，暂用矢量塔基候选轮廓中心，约±15m，未经测绘确认",
+      "八角塔入口朝向未核实，按卫星图登山路方向约225°示意",
+      "各层尺寸、栏杆、出檐曲率和顶刹分配为估算；省略神兽和纹样"
+    ]
+  },
+  "anchor": [
+    113.8967668233035,
+    22.783881822750836
+  ],
+  "bearingDeg": 225,
+  "bearingStatus": "估算",
+  "height": 47,
+  "storeys": 9,
+  "sides": 8,
+  "scale": 1,
+  "footprint": [
+    [
+      113.89676438784015,
+      22.783789535574257
+    ],
+    [
+      113.89686667730072,
+      22.783883843637213
+    ],
+    [
+      113.89677023295218,
+      22.783973660779424
+    ],
+    [
+      113.89666599512093,
+      22.783880250950297
+    ]
+  ]
+}

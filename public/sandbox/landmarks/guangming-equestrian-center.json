@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "retrievedAt": "2026-10-05",
+    "coordinateSystem": "WGS84",
+    "projection": {
+      "origin": [
+        113.929007,
+        22.76207
+      ],
+      "k": 0.9221194861972872,
+      "note": "WebMercator × cos(lat0)，原点为光明区 bbox 中心，x 向东，z 向南，单位米"
+    },
+    "scale": 1,
+    "name": "光明国际马术中心",
+    "sources": [
+      {
+        "path": "assets/landmark-work/guangming-equestrian-center/refs/amap-pois.json",
+        "evidence": "高德地理锚点经项目函数转换为WGS84"
+      },
+      {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+        "evidence": "卫星影像核对；拍摄日期未知，马术中心影像为施工期间"
+      },
+      {
+        "path": "assets/landmark-work/guangming-equestrian-center/refs/official.jpg",
+        "evidence": "官方实景：连续三角坡顶、木色桁架、低层配套及中间露天沙地"
+      },
+      {
+        "url": "https://www.sz.gov.cn/szzt2010/szwtt/wtcg/tycg/content/post_12766454.html",
+        "evidence": "占地约5万平方米，主赛场、训练场与配套；最大木梁跨度66米"
+      }
+    ],
+    "limitations": [
+      "模型采用官方竣工照片外观，定位轮廓参考施工期卫星；非竣工测绘",
+      "屋顶折数、层高、梁截面、场地障碍为估算或示意",
+      "没有既有bearingDeg，使用卫星图人工描绘方向"
+    ]
+  },
+  "anchor": [
+    113.95933250460813,
+    22.760786700376674
+  ],
+  "bearingDeg": null,
+  "features": [
+    {
+      "id": "arena",
+      "kind": "arena",
+      "ring": [
+        [
+          113.95786,
+          22.7611
+        ],
+        [
+          113.959,
+          22.76169
+        ],
+        [
+          113.95965,
+          22.760635
+        ],
+        [
+          113.958505,
+          22.76002
+        ]
+      ],
+      "center": [
+        113.95875375,
+        22.760861249999998
+      ],
+      "height": 25,
+      "heightStatus": "估算"
+    },
+    {
+      "id": "training",
+      "kind": "training",
+      "ring": [
+        [
+          113.95933,
+          22.7619
+        ],
+        [
+          113.96028,
+          22.762405
+        ],
+        [
+          113.96077,
+          22.761595
+        ],
+        [
+          113.95981,
+          22.76108
+        ]
+      ],
+      "center": [
+        113.96004749999999,
+        22.761744999999998
+      ],
+      "height": 19,
+      "heightStatus": "估算"
+    },
+    {
+      "id": "court",
+      "kind": "court",
+      "ring": [
+        [
+          113.958995,
+          22.76169
+        ],
+        [
+          113.95933,
+          22.7619
+        ],
+        [
+          113.95981,
+          22.76108
+        ],
+        [
+          113.95965,
+          22.760635
+        ]
+      ],
+      "center": [
+        113.95944625,
+        22.761326250000003
+      ],
+      "height": 0.4,
+      "heightStatus": "估算"
+    }
+  ],
+  "boundary": [
+    [
+      113.95754,
+      22.761165
+    ],
+    [
+      113.96031500000001,
+      22.76266
+    ],
+    [
+      113.960925,
+      22.76158
+    ],
+    [
+      113.95984,
+      22.760535
+    ],
+    [
+      113.960105,
+      22.75987
+    ],
+    [
+      113.958755,
+      22.759214999999998
+    ],
+    [
+      113.95786,
+      22.759819999999998
+    ]
+  ]
+}
