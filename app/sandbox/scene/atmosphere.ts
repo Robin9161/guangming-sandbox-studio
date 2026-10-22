@@ -5,11 +5,15 @@ import { night as nightStyle, sky, water as waterStyle } from "./palette";
 import { createLook, evalLook, MOODS, RESTRAINT } from "./artPalette";
 import { applyWeatherToLook, weatherState } from "./weather";
 import { weatherShadingUniforms } from "./weatherShading";
+import { rng } from "../studio/clock";
+import { params } from "../studio/params";
 
 /** 全场景共享的昼夜系数：0 = 白天，1 = 夜晚。着色器直接读这个 uniform。 */
 export const nightUniform = uniform(0);
 /** 夜里亮灯窗户的比例（0–1）。光影模式下随时间变化：黄昏逐渐亮起，深夜熄掉一部分 */
 export const windowLitUniform = uniform(0.24);
+/** 窗灯亮度倍数（参数「窗灯亮度」） */
+export const windowGainUniform = uniform(1);
 
 /** 让带顶点色的材质在夜里按自身颜色发光（地铁桥面、站点等） */
 export function glowFromVertexColor(material: THREE.MeshStandardMaterial, strength: number, dayStrength = 0) {
@@ -130,6 +134,12 @@ export function createAtmosphere(refs: Refs) {
   let sunBase = 3.1;
   let hemiBase = 1.5;
   let dim = 0; // 舞台光压暗系数 0–1
+  // 参数（studio/params.ts）乘在这些"基础值"上，每帧在 finalize() 里统一写进灯光、后期
+  let bloomBase = 0;
+  let satBase = 1;
+  let gradeBase = 0;
+  let windowLitBase = 0.24;
+  let starBase = 0;
   const apply = (t: number) => {
     const top = mix(c.skyTop, t).getStyle();
     const bottom = mix(c.skyBottom, t).getStyle();
@@ -146,14 +156,12 @@ export function createAtmosphere(refs: Refs) {
     hemi.groundColor.copy(mix(c.hemiGround, t));
     hemiBase = THREE.MathUtils.lerp(1.5, 0.38, t);
     exposure = THREE.MathUtils.lerp(1.0, 1.05, t);
-    renderer.toneMappingExposure = exposure;
-    refs.bloom.enabled = t > 0.02;
-    refs.bloom.strength = 0.18 * t;
+    bloomBase = t > 0.02 ? 0.18 * t : 0;
     refs.vignette.uniforms.darkness.value = THREE.MathUtils.lerp(0.9, 1.25, t);
     refs.clouds.emissiveIntensity = THREE.MathUtils.lerp(0.18, 0.0, t);
     refs.clouds.color.copy(tmp.set("#ffffff").lerp(new THREE.Color("#5b6a99"), t));
     for (const item of tinted) item.material.color.copy(mix(item.colors, t));
-    starMaterial.opacity = Math.max(0, t * 1.2 - 0.2);
+    starBase = Math.max(0, t * 1.2 - 0.2);
     stars.visible = t > 0.05;
     nightUniform.value = t;
   };
@@ -186,7 +194,7 @@ export function createAtmosphere(refs: Refs) {
   // 晨雾：约六成的日子清晨有雾（第一天一定有，方便看到）
   let dayFog = 0.85;
   const gfU = weatherShadingUniforms;
-  const randomMood = () => 1 + Math.floor(Math.random() * (MOODS.length - 1));
+  const randomMood = () => 1 + Math.floor(rng() * (MOODS.length - 1));
   // 正午 = 原来的「白天」马卡龙风格：10:30–14:00 整段用经典白天的天色、阳光、天光、无调色、无远雾，
   // 前后各约一小时渐入渐出。先混配色再叠天气，所以下雨的正午照样变灰。
   const classic = {
@@ -209,12 +217,22 @@ export function createAtmosphere(refs: Refs) {
     return m;
   };
   const fogLight = { morning: 0 };
+  const lumOf = (col: THREE.Color) => Math.max(1e-4, col.r * W.x + col.g * W.y + col.b * W.z);
   const applyArt = () => {
     evalLook(hour, moodChoice ?? moodAuto, look);
     const noon = applyClassicNoon();
     applyWeatherToLook(look);
     macaron = noon * (weatherState.kind === "clear" ? 1 : 1 - weatherState.level);
     const k = look.colors;
+    // 参数：天空彩度（天空和远雾往同亮度的灰靠或更浓）、太阳方向手动
+    for (const col of [k.top, k.mid, k.horizon, k.fog]) {
+      const l = lumOf(col);
+      col.setRGB(Math.max(0, l + (col.r - l) * params.skyChroma), Math.max(0, l + (col.g - l) * params.skyChroma), Math.max(0, l + (col.b - l) * params.skyChroma));
+    }
+    if (params.sunManual) {
+      look.sunDir.copy(manualSunDir());
+      look.sunUp = Math.max(look.sunUp, THREE.MathUtils.smoothstep(params.sunElevation, 0, 6));
+    }
     domeU.uTop.value.copy(k.top);
     domeU.uMid.value.copy(k.mid);
     domeU.uHorizon.value.copy(k.horizon);
@@ -231,10 +249,7 @@ export function createAtmosphere(refs: Refs) {
     hemi.groundColor.copy(k.ground);
     hemiBase = look.hemiI;
     exposure = THREE.MathUtils.lerp(1.0, 1.05, look.night);
-    renderer.toneMappingExposure = exposure;
-    const bloomStrength = 0.18 * look.night + 0.15 * look.glow + 0.6 * weatherState.flash;
-    refs.bloom.enabled = bloomStrength > 0.02;
-    refs.bloom.strength = bloomStrength;
+    bloomBase = 0.18 * look.night + 0.15 * look.glow + 0.6 * weatherState.flash;
     refs.vignette.uniforms.darkness.value = THREE.MathUtils.lerp(0.9, 1.25, look.night);
     refs.clouds.emissiveIntensity = 0.18 * (1 - look.night);
     refs.clouds.color.copy(white).lerp(k.horizon, 0.35 * (1 - macaron)).lerp(cloudNight, look.night * 0.8);
@@ -245,17 +260,17 @@ export function createAtmosphere(refs: Refs) {
       refs.clouds.emissiveIntensity *= 1 - weatherState.level;
     }
     for (const item of tinted) item.material.color.copy(waterDay).lerp(k.horizon, 0.3 * (1 - macaron)).lerp(waterNight, look.night);
-    starMaterial.opacity = Math.max(0, look.night * 1.2 - 0.2);
+    starBase = Math.max(0, look.night * 1.2 - 0.2);
     stars.visible = look.night > 0.05;
     nightUniform.value = look.night;
     normalized(gradeU.uShadow.value, k.shadow);
     normalized(gradeU.uHigh.value, k.high);
-    gradeU.uAmount.value = look.grade * RESTRAINT.grade;
+    gradeBase = look.grade * RESTRAINT.grade;
     // 亮灯：18:30 起逐渐亮到约 3 成，22:00 后慢慢熄到 1 成多，天亮前全熄
     const h = hour < 12 ? hour + 24 : hour;
-    windowLitUniform.value = THREE.MathUtils.smoothstep(h, 18.3, 20) * (0.3 - 0.17 * THREE.MathUtils.smoothstep(h, 22, 26)) * (1 - THREE.MathUtils.smoothstep(h, 28.5, 30));
-    gradeU.uSat.value = look.sat;
-    haze = look.haze;
+    windowLitBase = THREE.MathUtils.smoothstep(h, 18.3, 20) * (0.3 - 0.17 * THREE.MathUtils.smoothstep(h, 22, 26)) * (1 - THREE.MathUtils.smoothstep(h, 28.5, 30));
+    satBase = look.sat;
+    haze = look.haze * Math.max(0.01, params.hazeAmount);
     // 贴地雾：清晨 5 点起雾、6 点半最浓、9 点散尽；「雾」天气更浓更厚。雾色取雾和天边色之间，清晨带一点暖
     const morning = dayFog * THREE.MathUtils.smoothstep(hour, 4.6, 6.2) * (1 - THREE.MathUtils.smoothstep(hour, 6.8, 9.0));
     const weatherFog = weatherState.kind === "fog" ? weatherState.level : 0;
@@ -271,22 +286,52 @@ export function createAtmosphere(refs: Refs) {
     gfU.uSnow.value = weatherState.snow;
   };
 
+  /** 参数「太阳方向手动」：方位 0 = 北、90 = 东（x 向东，z 向南） */
+  const manualDir = new THREE.Vector3();
+  const manualSunDir = () => {
+    const az = THREE.MathUtils.degToRad(params.sunAzimuth), el = THREE.MathUtils.degToRad(params.sunElevation);
+    return manualDir.set(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));
+  };
+  /** 每帧最后：把参数乘到基础值上，写进灯光、曝光、泛光、调色、亮灯比例 */
+  const finalize = () => {
+    sun.intensity = sunBase * (1 - 0.62 * dim) * params.sunIntensity;
+    hemi.intensity = hemiBase * (1 - 0.5 * dim) * params.skyLight;
+    if (!art) sun.position.copy(params.sunManual ? manualSunDir().clone().multiplyScalar(refs.sunDistance).add(refs.center) : legacySunPosition);
+    renderer.toneMappingExposure = exposure * params.exposure;
+    const bloomStrength = bloomBase * params.bloom;
+    refs.bloom.enabled = bloomStrength > 0.02;
+    refs.bloom.strength = bloomStrength;
+    gradeU.uAmount.value = art ? gradeBase * params.grade : 0;
+    gradeU.uSat.value = (art ? satBase : 1) * params.saturation;
+    windowLitUniform.value = (art ? windowLitBase : 0.24) * params.windowShare;
+    windowGainUniform.value = params.windowBrightness;
+    starMaterial.opacity = starBase * params.stars;
+  };
+  const setArt = (on: boolean) => {
+    art = on;
+    dome.visible = on;
+    scene.background = on ? null : background;
+    if (!on) {
+      sun.position.copy(legacySunPosition);
+      current = -1; // 下一帧立即回到白天 / 夜晚的配色
+      gfU.uGFAmount.value = 0;
+      gfU.uSnow.value = 0;
+    }
+  };
+
   return {
     /** 光影模式开关：连续的一天、太阳移动、天空穹顶、雾 = 地平线色、全局调色 */
-    setArt: (on: boolean) => {
-      art = on;
-      dome.visible = on;
-      scene.background = on ? null : background;
-      if (!on) {
-        sun.position.copy(legacySunPosition);
-        gradeU.uAmount.value = 0;
-        gradeU.uSat.value = 1;
-        current = -1; // 下一帧立即回到白天 / 夜晚的配色
-        windowLitUniform.value = 0.24;
-        gfU.uGFAmount.value = 0;
-        gfU.uSnow.value = 0;
-      }
+    setArt,
+    /** 记下 / 恢复画面模式和一天的状态（渲染成片时从同一个状态开始） */
+    getState: () => ({ art, target, current, hour, playing, moodChoice, moodAuto, dayFog }),
+    setState: (s: { art: boolean; target: number; current: number; hour: number; playing: boolean; moodChoice: number | null; moodAuto: number; dayFog: number }) => {
+      if (s.art !== art) setArt(s.art);
+      ({ target, hour, playing, moodChoice, moodAuto, dayFog } = s);
+      if (!art) { current = s.current; if (current >= 0) apply(current); }
     },
+    /** 经典模式下是不是夜晚（目标） */
+    isNightTarget: () => target === 1,
+    isPlaying: () => playing,
     setHour: (value: number) => { hour = ((value % 24) + 24) % 24; },
     getHour: () => hour,
     setPlaying: (on: boolean) => { playing = on; },
@@ -314,29 +359,25 @@ export function createAtmosphere(refs: Refs) {
     /** 舞台光：压低太阳光和天空光（不动曝光），让主体之外真正暗下来 */
     setDim: (value: number) => {
       dim = value;
-      sun.intensity = sunBase * (1 - 0.62 * dim);
-      hemi.intensity = hemiBase * (1 - 0.5 * dim);
+      sun.intensity = sunBase * (1 - 0.62 * dim) * params.sunIntensity;
+      hemi.intensity = hemiBase * (1 - 0.5 * dim) * params.skyLight;
     },
     update: (delta: number) => {
       if (art) {
         if (playing) {
-          // 一天约 4 分钟；夜里（20:30–4:30）走 3 倍速
+          // 一天约 4 分钟（参数「时间流速」可调）；夜里（20:30–4:30）走 3 倍速
           const before = hour;
           const nightish = hour > 20.5 || hour < 4.5;
-          hour = (hour + delta * 0.1 * (nightish ? 3 : 1)) % 24;
+          hour = (hour + delta * 0.1 * params.timeSpeed * (nightish ? 3 : 1)) % 24;
           if ((before < 12 && hour >= 12) || hour < before) moodAuto = randomMood();
-          if (hour < before) dayFog = Math.random() < 0.6 ? 0.6 + 0.35 * Math.random() : 0;
+          if (hour < before) dayFog = rng() < 0.6 ? 0.6 + 0.35 * rng() : 0;
         }
         applyArt();
-        sun.intensity = sunBase * (1 - 0.62 * dim);
-        hemi.intensity = hemiBase * (1 - 0.5 * dim);
-        return;
+      } else if (current !== target) {
+        current = current < 0 ? target : current + Math.sign(target - current) * Math.min(Math.abs(target - current), delta / 1.5);
+        apply(current);
       }
-      if (current === target) return;
-      current = current < 0 ? target : current + Math.sign(target - current) * Math.min(Math.abs(target - current), delta / 1.5);
-      apply(current);
-      sun.intensity = sunBase * (1 - 0.62 * dim);
-      hemi.intensity = hemiBase * (1 - 0.5 * dim);
+      finalize();
     },
     dispose: () => {
       background.dispose();

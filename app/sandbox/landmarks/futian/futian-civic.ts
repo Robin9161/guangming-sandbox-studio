@@ -129,7 +129,7 @@ export function buildFutianCivic(ctx: Ctx): THREE.Group {
   box("glazingLight",sx,sy+1.55,sz+dz,10,.7,15);
   for(const dx of [-3,0,3])box("silver",sx+dx,sy+2.25,sz+dz,.24,.12,15);
  }
- for(const [key,positions] of Object.entries(faces))k.triangles(key as ColorKey,positions);
+ for(const [key,positions] of Object.entries(faces) as [string,number[]][])k.triangles(key as ColorKey,positions);
  const group=k.finish();
  group.userData={district:"futian",scale:SCALE,sourceBuildingIndex:4741,stationUnderground:true};
  return group;

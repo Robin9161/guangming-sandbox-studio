@@ -36,6 +36,8 @@ export const cityLightUniforms = {
   uCityScale: uniform(new THREE.Vector2(1, 1)),
   uLampColor: uniform(new THREE.Color(LAMP_COLOR)),
   uLampNight: nightUniform,
+  /** 路灯亮度倍数（参数「路灯」） */
+  uLampGain: uniform(1),
 };
 /** 按世界坐标 xz 取两张图的贴图坐标 */
 export const cityUv = () => positionWorld.xz.sub(cityLightUniforms.uCityOffset).mul(cityLightUniforms.uCityScale);
@@ -114,5 +116,5 @@ export function buildCityLight(data: SandboxData, bounds: { minX: number; maxX: 
  */
 export function litByStreetLamps(material: THREE.MeshStandardMaterial, strength: number) {
   const u = cityLightUniforms;
-  addEmissive(material, diffuseColor.rgb.mul(u.uLampColor).mul(lampAt()).mul(u.uLampNight).mul(strength));
+  addEmissive(material, diffuseColor.rgb.mul(u.uLampColor).mul(lampAt()).mul(u.uLampNight).mul(u.uLampGain).mul(strength));
 }

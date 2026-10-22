@@ -1,0 +1,12 @@
+{
+  "name": "01_黄金时刻",
+  "savedAt": "2026-10-21T12:00:00.000Z",
+  "params": {},
+  "look": {
+    "art": true,
+    "night": false,
+    "hour": 17.4,
+    "moodChoice": null
+  },
+  "weather": "clear"
+}

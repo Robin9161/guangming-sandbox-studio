@@ -19,7 +19,7 @@ export function landmarkKit(ctx:LandmarkContext,anchor:LL,name:string,accent="#b
  const origin=ctx.project(anchor),ground=ctx.groundAt(anchor);group.position.copy(origin);group.position.y=ground;
  const mat=(color:string,roughness=.68)=>new THREE.MeshStandardMaterial({color,roughness,side:THREE.DoubleSide});
  const materials={white:mat("#fbfbf9"),silver:mat("#dde2e8",.55),stone:mat("#ede4d3",.78),glass:mat("#33475c",.42),green:mat("#b3c898",.8),leaf:mat("#85ad91",.8),water:mat("#82b6bc",.4),accent:mat(accent,.6),wood:mat("#bc9266",.72),red:mat("#a85c58",.68),roof:mat("#33475c",.72),glazing:mat("#526d80",.4),glazingLight:mat("#77909f",.4)};
- for(const [key,color] of Object.entries(colors))materials[key as ColorKey].color.set(color);
+ for(const [key,color] of Object.entries(colors) as [string,string][])materials[key as ColorKey].color.set(color);
  materials.glazing.metalness=.3;materials.glazingLight.metalness=.25;glowColor(materials.glazing,"#ffe2b0",.35);glowColor(materials.glazingLight,"#ffe2b0",.25);materials.glass.metalness=.12;materials.water.metalness=.12;glowColor(materials.glass,"#ffe2b0",1);
  const batches:Record<ColorKey,THREE.BufferGeometry[]>={white:[],silver:[],stone:[],glass:[],green:[],leaf:[],water:[],accent:[],wood:[],red:[],roof:[],glazing:[],glazingLight:[]};
  const local=(p:number[]):P=>{const v=ctx.project(p as LL);return[v.x-origin.x,v.z-origin.z];};

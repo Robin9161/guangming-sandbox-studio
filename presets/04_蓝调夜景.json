@@ -1,0 +1,12 @@
+{
+  "name": "04_蓝调夜景",
+  "savedAt": "2026-10-21T12:00:00.000Z",
+  "params": {},
+  "look": {
+    "art": true,
+    "night": false,
+    "hour": 19.3,
+    "moodChoice": 3
+  },
+  "weather": "clear"
+}

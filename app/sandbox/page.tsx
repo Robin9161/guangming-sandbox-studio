@@ -31,6 +31,8 @@ const VIEWS: { key: ViewKey; label: string }[] = [
 
 export default function SandboxPage() {
   const mountRef = useRef<HTMLDivElement>(null);
+  // 做视频用的「运镜与时间线」「渲染成片」（app/sandbox/studio/）放在这里，由场景填充
+  const studioRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<SandboxHandle | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [view, setView] = useState<ViewKey | null>("miniature");
@@ -133,7 +135,7 @@ export default function SandboxPage() {
     if (!mount) return;
     let cancelled = false;
     import("./scene/createSandbox")
-      .then(({ createSandbox }) => createSandbox(mount, { landmark: styles.landmarkLabel, station: styles.stationLabel, water: styles.waterLabel, poi: styles.poiLabel, story: styles.storyLabel, roadName: styles.roadName, roadEnd: styles.roadEnd, lit: styles.labelLit }, (name) => { setFocus(name); setView(null); }, district))
+      .then(({ createSandbox }) => createSandbox(mount, { landmark: styles.landmarkLabel, station: styles.stationLabel, water: styles.waterLabel, poi: styles.poiLabel, story: styles.storyLabel, roadName: styles.roadName, roadEnd: styles.roadEnd, lit: styles.labelLit }, (name) => { setFocus(name); setView(null); }, district, studioRef.current ?? undefined))
       .then((handle) => {
         if (cancelled) { handle.dispose(); return; }
         handleRef.current = handle;
@@ -229,18 +231,23 @@ export default function SandboxPage() {
       handle.setNight(mode === "night");
     }
   };
-  // 光影模式下时间在场景里走，面板每 0.25 秒同步一次时钟
+  // 时间在场景里走，预设、时间线也会改画面模式和时刻：面板每 0.25 秒同步一次
   useEffect(() => {
-    if (!art) return;
+    if (status !== "ready") return;
     const timer = window.setInterval(() => {
       const handle = handleRef.current;
       if (!handle) return;
-      setArtHour(handle.getHour());
+      const look = handle.getLook();
+      setArt(look.art);
+      setIsNight(look.night);
+      setArtPlaying(look.playing);
+      setArtMood(look.moodChoice);
+      setArtHour(look.hour);
       setArtNight(handle.isArtNight());
-      setWeather(handle.getWeather());
+      setWeather(look.weather);
     }, 250);
     return () => window.clearInterval(timer);
-  }, [art]);
+  }, [status]);
   const toggleEffects = () => {
     setEffects(!effects);
     handleRef.current?.setEffects(!effects);
@@ -248,8 +255,8 @@ export default function SandboxPage() {
 
   return (
     <main className={styles.page} data-night={(art ? artNight : isNight) ? "true" : "false"}>
-      <div ref={mountRef} className={styles.canvas} aria-label="光明区微缩沙盘" />
-      <header className={styles.header}>
+      <div ref={mountRef} className={styles.canvas} aria-label="光明区微缩沙盘" data-sandbox-canvas />
+      <header className={styles.header} data-studio-ui>
         <div>
           <p className={styles.kicker}>GUANGMING · MINIATURE CITY</p>
           <h1>{DISTRICTS.find(([id]) => id === district)?.[2] ?? "光明区"}微缩沙盘</h1>
@@ -257,7 +264,7 @@ export default function SandboxPage() {
         </div>
       </header>
 
-      <aside className={styles.panel}>
+      <aside className={styles.panel} data-studio-ui>
         <div className={styles.panelHeader}>
           <span>视角</span>
           <span className={styles.status} data-state={status}>{status === "loading" ? "搭建中…" : status === "ready" ? "已就绪" : "加载失败"}</span>
@@ -347,6 +354,8 @@ export default function SandboxPage() {
           {effects ? "画质：精致（AO + 移轴）" : "画质：流畅"}
         </button>
 
+        <div ref={studioRef} />
+
         {stats && (
           <div className={styles.metroLegend}>
             <span><i className={styles.legendSolid} />高架（地上）</span>
@@ -364,7 +373,7 @@ export default function SandboxPage() {
       </aside>
 
       {current && storyStep !== null && (
-        <section className={styles.caption} aria-live="polite">
+        <section className={styles.caption} aria-live="polite" data-studio-ui>
           <p className={styles.captionKicker}>{current.act} · {current.title}</p>
           <h2>{current.question}</h2>
           <p className={styles.captionBody}>{current.body}</p>
@@ -384,7 +393,7 @@ export default function SandboxPage() {
         </section>
       )}
 
-      <div className={styles.tip}>拖动旋转 · 滚轮缩放 · 右键平移 · 点击片区名飞入</div>
+      <div className={styles.tip} data-studio-ui>拖动旋转 · 滚轮缩放 · 右键平移 · 点击片区名飞入</div>
     </main>
   );
 }

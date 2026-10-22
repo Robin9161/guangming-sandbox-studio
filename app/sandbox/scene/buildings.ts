@@ -2,7 +2,7 @@ import * as THREE from "three/webgpu";
 import { abs, attribute, materialColor, vertexColor, clamp, dot, float, floor, fract, fwidth, max, mix, normalize, normalWorld, positionLocal, positionWorld, select, sin, smoothstep, step, uniform, vec2, vec3 } from "three/tsl";
 import { addColorMod, addEmissive, setPosition } from "./nodes";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { nightUniform, windowLitUniform } from "./atmosphere";
+import { nightUniform, windowGainUniform, windowLitUniform } from "./atmosphere";
 import { activityAt, cityLightUniforms, lampAt } from "./nightLight";
 import { buildingColors } from "./palette";
 import { Raster, type Terrain } from "./terrain";
@@ -71,9 +71,9 @@ function windowMaterial() {
   // 灯色单一：柔和的暖黄白；推近时没亮的窗是暗蓝玻璃；路灯只剩一丝微光照到楼脚
   const lampHere = lampAt().mul(float(1).sub(smoothstep(3.0, 26.0, positionWorld.y.sub(info.x))));
   addEmissive(material, silhouette.mul(nightK)
-    .add(vec3(1.0, 0.8, 0.48).mul(windowAmount).mul(lit).mul(nightUniform).mul(2.4))
+    .add(vec3(1.0, 0.8, 0.48).mul(windowAmount).mul(lit).mul(nightUniform).mul(windowGainUniform.mul(2.4)))
     .add(vec3(0.02, 0.04, 0.1).mul(pane).mul(sharp).mul(wallMask).mul(float(1).sub(rowOn)).mul(nightK).mul(0.5))
-    .add(albedo.mul(cityLightUniforms.uLampColor).mul(lampHere).mul(cityLightUniforms.uLampNight).mul(0.15)), "bld");
+    .add(albedo.mul(cityLightUniforms.uLampColor).mul(lampHere).mul(cityLightUniforms.uLampNight).mul(cityLightUniforms.uLampGain).mul(0.15)), "bld");
   return material;
 }
 

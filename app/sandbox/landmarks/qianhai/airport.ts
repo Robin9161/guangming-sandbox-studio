@@ -234,7 +234,7 @@ export function buildAirport(ctx: Ctx): THREE.Group {
  k.cylinder("glazing",tp[0],tp[1],tg+76,14,7,15,8);
  k.cylinder("white",tp[0],tp[1],tg+83,16,2,14,8);
  k.cylinder("silver",tp[0],tp[1],tg+85,.6,5,.3,6);
- for(const [key,positions] of Object.entries(batches))if(positions.length)k.triangles(key as ColorKey,positions);
+ for(const [key,positions] of Object.entries(batches) as [string,number[]][])if(positions.length)k.triangles(key as ColorKey,positions);
  const group=k.finish();
  // 远距离深度精度不足时，0.1m高度差会让标线与跑道互相闪烁。
  // 专用标线材质做深度偏移；不影响航站楼白色屋面。

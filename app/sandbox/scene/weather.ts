@@ -1,6 +1,7 @@
 import * as THREE from "three/webgpu";
-import { abs, float, fract, hash, instanceIndex, length, sin, smoothstep, step, uniform, uv, vec2, vec3 } from "three/tsl";
+import { abs, color, float, fract, hash, instanceIndex, length, sin, smoothstep, step, uniform, uv, vec2, vec3 } from "three/tsl";
 import type { Look } from "./artPalette";
+import { rng } from "../studio/clock";
 
 /**
  * 天气系统（照搬《无尽动画》的机制）：
@@ -9,6 +10,7 @@ import type { Look } from "./artPalette";
  * - 手动切换：快速收掉当前天气、再快速起新的；之后 4 分钟不自动换
  * - 天气改整帧配色（变灰、变冷、雾变浓），雷暴夜里的闪电瞬间照亮整帧
  * 只在「光影」模式下生效。
+ * 随机数一律用 studio/clock.ts 的 rng（可复现），渲染成片时同一个起始状态每次都一样。
  */
 
 export type WeatherKind = "clear" | "cloudy" | "rain" | "storm" | "fog" | "snow";
@@ -84,6 +86,11 @@ export function applyWeatherToLook(look: Look) {
 const RAIN_COUNT = 7000;
 const SNOW_COUNT = 9000;
 
+export type WeatherSnapshot = {
+  mode: "auto" | WeatherKind; timer: number; manualUntil: number; pending: WeatherKind | null; fast: boolean;
+  target: number; time: number; nextFlash: number; flicker: number; state: typeof weatherState;
+};
+
 export function createWeather(scene: THREE.Scene) {
   const rainUniforms = {
     uCenter: uniform(new THREE.Vector3()),
@@ -123,32 +130,43 @@ export function createWeather(scene: THREE.Scene) {
   const rain = rainParts.sprite;
   const snowflakes = snowParts.sprite;
 
-  // 闪电：从云层到地面的一道折线，只在闪的那一瞬间可见
-  const boltPoints = 16;
-  const boltGeometry = new THREE.BufferGeometry();
-  boltGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(boltPoints * 3), 3));
-  const boltMaterial = new THREE.LineBasicMaterial({ color: new THREE.Color(4, 3.8, 5), transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false });
-  const bolt = new THREE.Line(boltGeometry, boltMaterial);
-  bolt.frustumCulled = false;
+  // 闪电：从云底劈下一道折线（带两根分叉），只在闪的那一瞬间可见。
+  // 用细管子而不是 1 像素的线：4K 成片里远看也有一两个像素粗；亮度超过 1，交给泛光显出光晕
+  const boltMaterial = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending });
+  const boltOpacity = uniform(0);
+  boltMaterial.colorNode = color(4, 3.8, 5);
+  boltMaterial.opacityNode = boltOpacity;
+  const bolt = new THREE.Group();
+  bolt.name = "lightning";
   bolt.visible = false;
   scene.add(bolt);
-  const strike = (center: THREE.Vector3, size: number, groundAt: (x: number, z: number) => number) => {
-    const x = center.x + (Math.random() - 0.5) * size * 0.8, z = center.z + (Math.random() - 0.5) * size * 0.8;
-    const top = 2600 + Math.random() * 800, bottom = groundAt(x, z);
-    const pos = boltGeometry.attributes.position as THREE.BufferAttribute;
-    let px = x + (Math.random() - 0.5) * size * 0.15, pz = z + (Math.random() - 0.5) * size * 0.15;
-    for (let i = 0; i < boltPoints; i += 1) {
-      const t = i / (boltPoints - 1);
-      if (i === boltPoints - 1) { px = x; pz = z; }
-      pos.setXYZ(i, px, THREE.MathUtils.lerp(top, bottom, t), pz);
-      px += (Math.random() - 0.5) * size * 0.03 + (x - px) * 0.25;
-      pz += (Math.random() - 0.5) * size * 0.03 + (z - pz) * 0.25;
+  const jag = (from: THREE.Vector3, to: THREE.Vector3, segments: number, wobble: number) => {
+    const pts: THREE.Vector3[] = [];
+    for (let i = 0; i <= segments; i += 1) {
+      const p = from.clone().lerp(to, i / segments);
+      if (i > 0 && i < segments) p.add(new THREE.Vector3((rng() - 0.5) * wobble, 0, (rng() - 0.5) * wobble));
+      pts.push(p);
     }
-    pos.needsUpdate = true;
+    return pts;
+  };
+  const tube = (pts: THREE.Vector3[], radius: number) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.1), pts.length * 3, radius, 4, false), boltMaterial);
+  const strike = (center: THREE.Vector3, size: number, groundAt: (x: number, z: number) => number) => {
+    for (const child of [...bolt.children]) { (child as THREE.Mesh).geometry.dispose(); bolt.remove(child); }
+    const x = center.x + (rng() - 0.5) * size * 0.8, z = center.z + (rng() - 0.5) * size * 0.8;
+    const top = new THREE.Vector3(x + (rng() - 0.5) * size * 0.15, 2600 + rng() * 800, z + (rng() - 0.5) * size * 0.15);
+    const bottom = new THREE.Vector3(x, groundAt(x, z), z);
+    const radius = THREE.MathUtils.clamp(size * 0.0016, 2, 40);
+    const main = jag(top, bottom, 16, size * 0.05);
+    bolt.add(tube(main, radius));
+    for (const at of [0.3 + rng() * 0.2, 0.55 + rng() * 0.2]) {
+      const start = main[Math.floor(at * (main.length - 1))];
+      const end = start.clone().add(new THREE.Vector3((rng() - 0.5) * size * 0.25, -(start.y - bottom.y) * (0.25 + rng() * 0.25), (rng() - 0.5) * size * 0.25));
+      bolt.add(tube(jag(start, end, 6, size * 0.03), radius * 0.55));
+    }
   };
 
   let mode: "auto" | WeatherKind = "auto";
-  let timer = 40 + Math.random() * 40; // 自动模式：到点就换
+  let timer = 40 + rng() * 40; // 自动模式：到点就换
   let manualUntil = 0;
   let pending: WeatherKind | null = null;
   let fast = false;
@@ -156,9 +174,10 @@ export function createWeather(scene: THREE.Scene) {
   let time = 0;
   let nextFlash = 5;
   let flicker = -1;
+  const amounts = { rain: 1, snow: 1, lightning: true };
 
   const pickAuto = () => {
-    let r = Math.random() * AUTO_WEIGHTS.reduce((s, [, w]) => s + w, 0);
+    let r = rng() * AUTO_WEIGHTS.reduce((s, [, w]) => s + w, 0);
     for (const [kind, w] of AUTO_WEIGHTS) { r -= w; if (r <= 0) return kind; }
     return "cloudy" as const;
   };
@@ -174,6 +193,14 @@ export function createWeather(scene: THREE.Scene) {
       fast = true;
     },
     getMode: () => mode,
+    /** 存下 / 恢复状态机的全部状态（渲染成片时，从同一个状态开始才能逐帧复现） */
+    snapshot: (): WeatherSnapshot => ({ mode, timer, manualUntil, pending, fast, target, time, nextFlash, flicker, state: { ...weatherState } }),
+    restore: (snap: WeatherSnapshot) => {
+      ({ mode, timer, manualUntil, pending, fast, target, time, nextFlash, flicker } = snap);
+      Object.assign(weatherState, snap.state);
+    },
+    /** 参数：雨量、雪量倍数，是否打闪电（studio/params.ts） */
+    setAmounts: (rain: number, snow: number, lightning: boolean) => { amounts.rain = rain; amounts.snow = snow; amounts.lightning = lightning; },
     /** 当前显示的天气名 */
     name: () => (weatherState.level < 0.05 && !pending ? WEATHER_NAMES.clear : WEATHER_NAMES[pending ?? weatherState.kind]),
     /** center：镜头焦点；camera：镜头位置。雨丝放在两者之间偏镜头的一侧，任何远近都看得清 */
@@ -189,8 +216,8 @@ export function createWeather(scene: THREE.Scene) {
         if (mode !== "auto") mode = "auto";
         timer -= delta;
         if (timer <= 0) {
-          if (target > 0) { target = 0; timer = 50 + Math.random() * 50; } // 转晴一段
-          else { s.kind = pickAuto(); target = TARGET[s.kind as Exclude<WeatherKind, "clear">] * (0.75 + Math.random() * 0.25); timer = 70 + Math.random() * 60; }
+          if (target > 0) { target = 0; timer = 50 + rng() * 50; } // 转晴一段
+          else { s.kind = pickAuto(); target = TARGET[s.kind as Exclude<WeatherKind, "clear">] * (0.75 + rng() * 0.25); timer = 70 + rng() * 60; }
         }
       }
       const rate = fast ? delta / 1.5 : delta / RAMP_SECONDS;
@@ -202,25 +229,25 @@ export function createWeather(scene: THREE.Scene) {
       s.snow += THREE.MathUtils.clamp(snowing - s.snow, -delta / 120, delta / 45);
 
       // 闪电（雷暴，只在夜里）：随机间隔，每次闪两下
-      const stormy = s.kind === "storm" && s.level > 0.5 && enabled && night > 0.5;
+      const stormy = s.kind === "storm" && s.level > 0.5 && enabled && night > 0.5 && amounts.lightning;
       if (stormy) {
         nextFlash -= delta;
-        if (nextFlash <= 0) { s.flash = 1; flicker = 0.12; nextFlash = 3 + Math.random() * 8; strike(center, Math.max(3000, cameraDistance), groundAt); }
+        if (nextFlash <= 0) { s.flash = 1; flicker = 0.12; nextFlash = 3 + rng() * 8; strike(center, Math.max(3000, cameraDistance), groundAt); }
         if (flicker > 0) { flicker -= delta; if (flicker <= 0) s.flash = Math.max(s.flash, 0.8); }
       }
       s.flash *= Math.exp(-delta * 9);
-      if (s.flash < 0.005) s.flash = 0;
-      bolt.visible = enabled && s.flash > 0.05;
-      boltMaterial.opacity = s.flash;
+      if (s.flash < 0.005 || !amounts.lightning) s.flash = 0;
+      bolt.visible = enabled && s.flash > 0.05 && bolt.children.length > 0;
+      boltOpacity.value = s.flash;
 
       rain.visible = enabled && raining > 0.01;
       snowflakes.visible = enabled && snowing > 0.01;
-      snowUniforms.uLevel.value = snowing;
+      snowUniforms.uLevel.value = snowing * amounts.snow;
       if (rain.visible || snowflakes.visible) {
         rainUniforms.uCenter.value.copy(camera).lerp(center, 0.4);
         rainUniforms.uSize.value = THREE.MathUtils.clamp(cameraDistance * 0.55, 300, 20000);
         rainUniforms.uTime.value = time;
-        rainUniforms.uLevel.value = raining * (s.kind === "storm" ? 0.7 : 0.55);
+        rainUniforms.uLevel.value = raining * (s.kind === "storm" ? 0.7 : 0.55) * amounts.rain;
       }
       if (!enabled) s.flash = 0;
     },
@@ -229,6 +256,6 @@ export function createWeather(scene: THREE.Scene) {
       rainUniforms.uColor.value.setRGB(0.79, 0.84, 0.92).multiplyScalar(0.25 + 0.75 * k);
       snowUniforms.uColor.value.setRGB(0.96, 0.97, 0.98).multiplyScalar(0.12 + 0.88 * k);
     },
-    dispose: () => { snowParts.material.dispose(); rainParts.material.dispose(); boltGeometry.dispose(); boltMaterial.dispose(); },
+    dispose: () => { snowParts.material.dispose(); rainParts.material.dispose(); for (const child of bolt.children) (child as THREE.Mesh).geometry.dispose(); boltMaterial.dispose(); },
   };
 }

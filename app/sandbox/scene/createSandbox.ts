@@ -1,6 +1,8 @@
 import * as THREE from "three/webgpu";
-import { abs, cameraFar, cameraNear, clamp, perspectiveDepthToViewZ, smoothstep, unpackRGBToNormal, packNormalToRGB, dot, float, mix, mrt, normalView, output, pass, sample, screenUV, uniform, vec2, vec3, vec4 } from "three/tsl";
+import { abs, cameraFar, cameraNear, clamp, perspectiveDepthToViewZ, renderOutput, smoothstep, texture3D, unpackRGBToNormal, packNormalToRGB, dot, float, mix, mrt, normalView, output, pass, sample, screenUV, uniform, vec2, vec3, vec4 } from "three/tsl";
 import { ao } from "three/examples/jsm/tsl/display/GTAONode.js";
+import { dof } from "three/examples/jsm/tsl/display/DepthOfFieldNode.js";
+import { lut3D } from "three/examples/jsm/tsl/display/Lut3DNode.js";
 import { bloom as bloomNode } from "three/examples/jsm/tsl/display/BloomNode.js";
 import { gaussianBlur } from "three/examples/jsm/tsl/display/GaussianBlurNode.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -31,11 +33,27 @@ import { nightUniform } from "./atmosphere";
 import { buildMetro } from "./metro";
 import { exaggerate, night, water as waterStyle } from "./palette";
 import { buildTerrain } from "./terrain";
-import { buildCityLight, litByStreetLamps } from "./nightLight";
+import { buildCityLight, cityLightUniforms, litByStreetLamps } from "./nightLight";
 import { buildCityDots } from "./cityDots";
 import { createWeather, weatherState, type WeatherKind } from "./weather";
 import { addWeatherShading, weatherShadingUniforms } from "./weatherShading";
 import { pairs, type LayerKey, type SandboxData, type ViewKey } from "./types";
+import { getRngState, setRngState, simTime } from "../studio/clock";
+import { assignParams, defaultParams, params } from "../studio/params";
+import { createPresets, type LookControl, type LookState } from "../studio/presets";
+import { buildPaths } from "../studio/paths";
+import { applyRig, rigFromCamera, type RigValues } from "../studio/moves";
+import { createTimeline, type Timeline } from "../studio/timeline";
+import { createFrameRenderer } from "../studio/frameRenderer";
+import type { SceneSnapshot, StudioHooks } from "../studio/jobs";
+import { buildFrameLabels } from "../studio/frameLabels";
+import { buildStreetLights } from "../studio/streetLights";
+import { bindParamsPanel } from "../studio/paramsPanel";
+import { bindTimelinePanel } from "../studio/timelinePanel";
+import { bindRenderPanel } from "../studio/renderPanel";
+import { fitRect, layoutSafeFrame, view } from "../studio/view";
+import { mountOverlays, showToast, STUDIO_PANEL_HTML } from "../studio/markup";
+import "../studio/studio.css";
 
 export type LabelClasses = { landmark: string; station: string; water: string; poi: string; story: string; roadName: string; roadEnd: string; lit: string };
 
@@ -74,6 +92,8 @@ export type SandboxHandle = {
   showWestTimeline: (on: boolean) => void;
   /** 茅洲河流域视图：从羊台山到沙井入海口的整块地形 + 地形推算的河网（首次打开时加载数据） */
   showWatershed: (on: boolean) => Promise<void>;
+  /** 画面模式、时刻、天气的当前状态（预设、时间线也会改它们，面板据此同步显示） */
+  getLook: () => LookState & { weather: { mode: "auto" | WeatherKind; name: string } };
   dispose: () => void;
 };
 
@@ -90,7 +110,8 @@ const WATER_LABEL_DISTANCE = 16000;
 /** 全深圳叠加层里高亮的区名（以 shenzhen-context.json 为准）；前海不在该文件的区列表里 */
 const DISTRICT_NAMES: Record<string, string> = { guangming: "光明区", nanshan: "南山区", futian: "福田区", luohu: "罗湖区", yantian: "盐田区", baoan: "宝安区", longhua: "龙华区", longgang: "龙岗区", pingshan: "坪山区", dapeng: "大鹏新区", qianhai: "前海" };
 
-export async function createSandbox(mount: HTMLElement, labelClasses: LabelClasses, onFlyTo?: (name: string) => void, district = "guangming"): Promise<SandboxHandle> {
+/** studioHost：右侧面板里放「运镜与时间线」「渲染成片」的容器（做视频用的工具，见 app/sandbox/studio/） */
+export async function createSandbox(mount: HTMLElement, labelClasses: LabelClasses, onFlyTo?: (name: string) => void, district = "guangming", studioHost?: HTMLElement): Promise<SandboxHandle> {
   // 一次只讲一个区：光明走原路径，其他区数据在 /sandbox/districts/<id>/；光明专属资源（地标、虹桥、讲解、主干道）其他区不加载
   const isGM = district === "guangming";
   const base = isGM ? "/sandbox" : `/sandbox/districts/${district}`;
@@ -129,11 +150,13 @@ export async function createSandbox(mount: HTMLElement, labelClasses: LabelClass
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.setClearColor(0x000000, 0); // 透明清屏：画面里的地名标签层没画到的地方 alpha = 0
   mount.appendChild(renderer.domElement);
   const labelRenderer = new CSS2DRenderer();
   labelRenderer.domElement.style.position = "absolute";
   labelRenderer.domElement.style.inset = "0";
   labelRenderer.domElement.style.pointerEvents = "none";
+  labelRenderer.domElement.dataset.studioUi = ""; // 网页标签不进成片：渲染时隐藏
   mount.appendChild(labelRenderer.domElement);
 
   const scene = new THREE.Scene();
@@ -222,22 +245,20 @@ const express = isGM
   // 会动的地标（如摩天轮）：模块在 object.userData.tick(delta, elapsed) 里自己更新，这里只收集
   const landmarkTickers: ((delta: number, elapsed: number) => void)[] = [];
   landmarks.group.traverse((o) => { if (typeof o.userData.tick === "function") landmarkTickers.push(o.userData.tick); });
-  let landmarkElapsed = 0;
   // 近景高精度：镜头离地标 < near 时懒加载 glb 并替换低精度模型，远了换回；背景仍是低精度场景
-  const hdState = landmarks.hdSlots.map((slot) => ({ slot, model: null as THREE.Object3D | null, loading: false, failed: false }));
+  const hdState = landmarks.hdSlots.map((slot) => ({ slot, model: null as THREE.Object3D | null, loading: null as Promise<void> | null, failed: false }));
   const hdCheck = () => {
     for (const h of hdState) {
       const close = camera.position.distanceTo(h.slot.origin) < h.slot.near;
       if (close && !h.model && !h.loading && !h.failed) {
-        h.loading = true;
-        import("three/examples/jsm/loaders/GLTFLoader.js").then(({ GLTFLoader }) => new GLTFLoader().loadAsync(h.slot.url)).then((gltf) => {
+        h.loading = import("three/examples/jsm/loaders/GLTFLoader.js").then(({ GLTFLoader }) => new GLTFLoader().loadAsync(h.slot.url)).then((gltf) => {
           const model = gltf.scene;
           model.position.copy(h.slot.origin);
           model.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
           model.visible = false;
           landmarks.group.add(model);
           h.model = model;
-        }).catch((error) => { console.warn(`hd ${h.slot.name} failed`, error); h.failed = true; }).finally(() => { h.loading = false; });
+        }).catch((error) => { console.warn(`hd ${h.slot.name} failed`, error); h.failed = true; }).finally(() => { h.loading = null; });
       }
       if (h.model) { h.model.visible = close; h.slot.low.visible = !close; }
     }
@@ -417,23 +438,70 @@ const express = isGM
   // 体积雾（晨雾、雾天、雨雪天）：按雾的浓度把画面混向雾色
   const volumeFog = createVolumeFog(scene, camera, scenePass.getTextureNode("depth").sample(screenUV), terrain.heightAt(center.x, center.z), terrain, data, renderer);
   const lit = volumeFog.apply(aoLit);
-  // 移轴：离焦点线（画面 52% 高度处）越远越糊。原来的水平 + 竖直移轴在画面最边缘也只糊约 3 像素，这里保持同样的轻度
+  // 移轴：离清晰带（默认画面 52% 高度处，参数可调位置和宽度）越远越糊。原来的水平 + 竖直移轴在画面最边缘也只糊约 3 像素，这里保持同样的轻度
   const uTilt = uniform(1);
-  const tiltBlur = gaussianBlur(vec4(lit, 1.0), null, 1.2, { resolutionScale: 0.5 });
-  const tiltK = clamp(abs(screenUV.y.sub(0.48)).mul(1.9), 0, 1).mul(uTilt);
-  const tilted = mix(lit, tiltBlur.rgb, tiltK);
+  const uTiltCenter = uniform(0.52), uTiltWidth = uniform(1);
+  const tiltK = clamp(abs(float(1).sub(screenUV.y).sub(uTiltCenter)).mul(1.9).div(uTiltWidth), 0, 1).mul(uTilt);
   const uBloom = uniform(0);
-  const bloomed = tilted.add(bloomNode(vec4(tilted, 1.0), 1, 0.5, 0.62).rgb.mul(uBloom));
-  // 暗角（同 VignetteShader：offset 0.9）
+  // 暗角（同 VignetteShader：offset 0.9）；参数「暗角」乘在强度上
   const vignetteUniforms = { darkness: uniform(0.9) };
+  const uVignetteK = uniform(1);
   const vuv = screenUV.sub(0.5).mul(0.9);
-  const vignetted = mix(bloomed, vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv));
+  const vignetteK = dot(vuv, vuv).mul(uVignetteK);
   const grade = createGrade();
-  const graded = grade.apply(vignetted);
-  const fullOutput = vec4(graded, 1.0);
-  // 「流畅」画质：不算 AO 和移轴
-  const lightOutput = vec4(grade.apply(mix(volumeFog.apply(sceneColor.rgb).add(bloomNode(sceneColor, 1, 0.5, 0.62).rgb.mul(uBloom)), vec3(float(1).sub(vignetteUniforms.darkness)), dot(vuv, vuv))), 1.0);
-  pipeline.outputNode = fullOutput;
+  // 景深（参数「景深强度」> 0 时打开）：对焦距离默认 = 镜头到焦点的距离，再加偏移
+  const dofU = { focus: uniform(1000), range: uniform(600), bokeh: uniform(0) };
+  // 3D LUT：作用在最终显示的颜色上（LUT 都是按显示颜色做的），所以色调映射和 sRGB 转换在链里显式做
+  const identityLut = () => {
+    const size = 2, lutData = new Uint8Array(size * size * size * 4);
+    for (let b = 0; b < size; b += 1) for (let g = 0; g < size; g += 1) for (let r = 0; r < size; r += 1) lutData.set([r * 255, g * 255, b * 255, 255], (r + g * size + b * size * size) * 4);
+    const tex = new THREE.Data3DTexture(lutData, size, size, size);
+    tex.minFilter = tex.magFilter = THREE.LinearFilter;
+    tex.needsUpdate = true;
+    return tex;
+  };
+  const lutAmount = uniform(0);
+  const lutTexture = texture3D(identityLut());
+  const lutNodes: { size: { value: number } }[] = [];
+  let hasLut = false;
+  const setLut = (lut: { texture3D: THREE.Data3DTexture; size: number } | null) => {
+    lutTexture.value = lut ? lut.texture3D : identityLut();
+    for (const n of lutNodes) n.size.value = lut ? lut.size : 2;
+    hasLut = !!lut;
+  };
+  // 画面里的地名标签：单独一层，最后叠上去（不受雾、移轴、调色、LUT 影响）；透明处 alpha = 0，颜色已按 alpha 预乘
+  const frameLabels = buildFrameLabels(data, terrain, landmarks.placed);
+  const labelLayer = pass(frameLabels.scene, camera, { depthBuffer: false }).getTextureNode();
+  const finish = (color: unknown) => {
+    const display = renderOutput(vec4(color as ReturnType<typeof vec3>, 1.0), THREE.NeutralToneMapping, THREE.SRGBColorSpace);
+    const lutPass = lut3D(display, lutTexture, 2, lutAmount);
+    lutNodes.push(lutPass as unknown as { size: { value: number } });
+    const shown = (lutPass as unknown as ReturnType<typeof vec4>).rgb;
+    return vec4(shown.mul(float(1).sub(labelLayer.a)).add(labelLayer.rgb), 1.0);
+  };
+  // 精致画质：（景深）→ 移轴 → 泛光 → 暗角 → 全局调色 → 色调映射 → LUT → 标签。景深开关会改变链的结构，两种都先搭好，切换时只换输出
+  const buildFull = (withDof: boolean) => {
+    const base = withDof ? (dof(vec4(lit, 1.0), scenePass.getViewZNode(), dofU.focus, dofU.range, dofU.bokeh) as unknown as ReturnType<typeof vec4>).rgb : lit;
+    const tiltBlur = gaussianBlur(vec4(base, 1.0), null, 1.2, { resolutionScale: 0.5 });
+    const tilted = mix(base, tiltBlur.rgb, tiltK);
+    const bloomed = tilted.add(bloomNode(vec4(tilted, 1.0), 1, 0.5, 0.62).rgb.mul(uBloom));
+    return finish(grade.apply(mix(bloomed, vec3(float(1).sub(vignetteUniforms.darkness)), vignetteK)));
+  };
+  const outputs = {
+    full: buildFull(false),
+    fullDof: buildFull(true),
+    // 「流畅」画质：不算 AO、移轴、景深
+    light: finish(grade.apply(mix(volumeFog.apply(sceneColor.rgb).add(bloomNode(sceneColor, 1, 0.5, 0.62).rgb.mul(uBloom)), vec3(float(1).sub(vignetteUniforms.darkness)), vignetteK))),
+  };
+  pipeline.outputColorTransform = false;
+  let effectsOn = true, dofOn = false;
+  const pickOutput = () => {
+    const next = !effectsOn ? outputs.light : dofOn ? outputs.fullDof : outputs.full;
+    if (pipeline.outputNode === next) return;
+    pipeline.outputNode = next;
+    pipeline.needsUpdate = true;
+  };
+  pipeline.outputNode = outputs.full;
   // 原来的 bloom / vignette / grade 接口（atmosphere 在用）
   const bloom = { enabled: false, get strength() { return uBloom.value; }, set strength(v: number) { uBloom.value = this.enabled ? v : 0; } };
   const vignette = { uniforms: vignetteUniforms };
@@ -463,26 +531,86 @@ const express = isGM
 
 
   const setEffects = (enabled: boolean) => {
-    pipeline.outputNode = enabled ? fullOutput : lightOutput;
-    pipeline.needsUpdate = true;
+    effectsOn = enabled;
+    pickOutput();
   };
   if (isSmall) setEffects(false);
 
-  // 夜里画面的内容是一个个小光点：移轴模糊会把它们糊成一团，AO 只会把暗处弄脏 → 随夜间系数减弱
+  // ---------- 补光、轮廓光、聚光灯（参数「太阳与灯光」，默认强度 0 = 不影响画面） ----------
+  // 补光：从太阳的水平反方向来的柔和天光，照亮阴影面；轮廓光：从焦点背后打向镜头的逆光，勾出楼和山的边；
+  // 聚光灯：焦点正上方照亮一片（重点区域），同时放进"太阳照雾"层，有雾时能看到光柱。都不投阴影（省性能）
+  const fillLight = new THREE.DirectionalLight("#cfe0ff", 0);
+  const rimLight = new THREE.DirectionalLight("#ffe2c0", 0);
+  const spotLight = new THREE.SpotLight("#ffe6c4", 0, 0, Math.PI / 12, 0.6, 0);
+  spotLight.layers.enable(volumeFog.sunFogLayer);
+  scene.add(fillLight, fillLight.target, rimLight, rimLight.target, spotLight, spotLight.target);
+  const WHITE = new THREE.Color(1, 1, 1), SPOT_COOL = new THREE.Color("#a8c8ff"), SPOT_WARM = new THREE.Color("#ffd28f");
+  const lightDir = new THREE.Vector3();
+  const updateStudioLights = () => {
+    const focus = controls.target;
+    const sunDir = lightDir.copy(sun.position).sub(sun.target.position).normalize();
+    // 补光：太阳的水平反方向、30° 高，颜色取天光色
+    lightDir.set(-sunDir.x, 0, -sunDir.z);
+    if (lightDir.lengthSq() < 1e-6) lightDir.set(1, 0, 0);
+    lightDir.normalize().setY(0.58).normalize();
+    fillLight.color.copy(hemi.color);
+    fillLight.intensity = params.fillLight;
+    fillLight.target.position.copy(focus);
+    fillLight.position.copy(focus).addScaledVector(lightDir, 10000);
+    // 轮廓光：从焦点背后（相对镜头）、25° 高打向镜头，颜色取阳光色
+    lightDir.subVectors(focus, camera.position).setY(0);
+    if (lightDir.lengthSq() < 1e-6) lightDir.set(0, 0, -1);
+    lightDir.normalize().setY(0.47).normalize();
+    rimLight.color.copy(sun.color).lerp(WHITE, 0.3);
+    rimLight.intensity = params.rimLight;
+    rimLight.target.position.copy(focus);
+    rimLight.position.copy(focus).addScaledVector(lightDir, 10000);
+    // 聚光灯：参数 10 ≈ 正午阳光的强度
+    spotLight.intensity = params.spotIntensity * 0.35;
+    spotLight.angle = Math.min(1.2, Math.atan(params.spotRadius / params.spotHeight));
+    spotLight.color.copy(SPOT_COOL).lerp(SPOT_WARM, (params.spotWarmth + 1) / 2);
+    spotLight.target.position.copy(focus);
+    spotLight.position.copy(focus).add(lightDir.set(0, params.spotHeight, 0));
+  };
+  // 近处的路灯光点（远处由城市光点 cityDots 表现）：跟随「道路」图层
+  const streetLights = buildStreetLights(data, terrain);
+  scene.add(streetLights.object);
+
+  // 夜里画面的内容是一个个小光点：移轴模糊会把它们糊成一团，AO 只会把暗处弄脏 → 随夜间系数减弱。参数在此基础上再乘
   const fogSunDir = new THREE.Vector3();
   const updateNightEffects = () => {
     const n = nightUniform.value;
-    uTilt.value = 1 - 0.85 * n;
-    uAO.value = 0.85 * (1 - n);
+    uTilt.value = (1 - 0.85 * n) * params.tilt;
+    uAO.value = 0.85 * (1 - n) * params.ao;
+    uTiltCenter.value = params.tiltCenter;
+    uTiltWidth.value = params.tiltWidth;
+    uVignetteK.value = params.vignette;
+    lutAmount.value = hasLut ? params.lutAmount : 0;
+    if (dofOn !== params.dofAmount > 0.001) { dofOn = params.dofAmount > 0.001; pickOutput(); }
+    dofU.focus.value = Math.max(1, camera.position.distanceTo(controls.target) + params.dofFocusOffset);
+    dofU.range.value = params.dofRange;
+    dofU.bokeh.value = params.dofAmount;
+    cityLightUniforms.uLampGain.value = params.streetLights;
+    streetLights.U.level.value = THREE.MathUtils.smoothstep(n, 0.35, 0.75) * params.streetLights;
+    streetLights.object.visible = params.showStreetLights && roads.visible && streetLights.U.level.value > 0.01;
   };
+  /** 渲染成片时为 true：实时预览停下，窗口尺寸变化不影响成片 */
+  let rendering = false;
+  /**
+   * 预览铺满窗口；镜头按"成片画幅"取景，窗口里多出来的部分是取景框外的延伸（会被压暗）。
+   * 做法：相机按成片比例设置，再用 setViewOffset 把视野扩到整个窗口——框里的构图和成片一模一样。
+   */
   const resize = () => {
+    if (rendering) return;
     const width = mount.clientWidth;
-    const height = mount.clientHeight;
-    camera.aspect = width / Math.max(height, 1);
+    const height = Math.max(mount.clientHeight, 1);
+    const r = fitRect(view.aspect);
+    camera.aspect = r.width / Math.max(r.height, 1);
+    camera.setViewOffset(r.width, r.height, -r.left, -r.top, width, height);
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     labelRenderer.setSize(width, height);
-
+    layoutSafeFrame();
   };
   resize();
   window.addEventListener("resize", resize);
@@ -809,7 +937,10 @@ const express = isGM
   let overlayOpacity = 0;
   let currentPaint: StoryStep["paint"] = null;
   let overlayTarget = 0;
+  /** 讲解中：画面里的地名标签让位给网页标签（站名点亮、路名浮现都在网页标签上） */
+  let storyActive = false;
   const setStoryStep = (index: number | null) => {
+    storyActive = index !== null;
     // 离开流域视图那一拍：先把光明版恢复
     if (watershedView?.group.visible) void showWatershed(false);
     for (const child of [...storyLabels.children]) storyLabels.remove(child);
@@ -828,7 +959,7 @@ const express = isGM
       return;
     }
     const step = story[index];
-    for (const [key, visible] of Object.entries(step.layers)) setLayer(key as LayerKey, !!visible);
+    for (const [key, visible] of Object.entries(step.layers) as [string, boolean | undefined][]) setLayer(key as LayerKey, !!visible);
     visibleMetroLines.clear();
     for (const line of metroSystem.lines) {
       const visible = step.metroLines ? !!step.metroLines[line] : true;
@@ -949,6 +1080,7 @@ const express = isGM
   scene.add(terrainLabels);
   const terrainLegend = document.createElement("div");
   Object.assign(terrainLegend.style, { display: "none", position: "absolute", left: "24px", top: "92px", maxWidth: "520px", fontFamily: "\"PingFang SC\", sans-serif", fontSize: "12px", color: "#3d4a5c", background: "rgba(255,250,241,0.96)", padding: "8px 12px", borderRadius: "12px", lineHeight: "1.8", boxShadow: "0 4px 14px rgba(61,74,92,0.2)", pointerEvents: "none", zIndex: "5" });
+  terrainLegend.dataset.studioUi = ""; // 网页图例不进成片：渲染时隐藏
   mount.appendChild(terrainLegend);
   const ELEVATION_BANDS: [number, string, string][] = [
     [4, "rgba(38,112,184,0.78)", "4 m 以下"],
@@ -1176,17 +1308,20 @@ const express = isGM
     }
   };
 
-  // ---------- 渲染循环 ----------
-  const clock = new THREE.Clock();
-  let frame = 0;
-  let simTime = 0;
-  const render = () => {
-    const delta = Math.min(clock.getDelta(), 0.1);
-    landmarkElapsed += delta;
-    for (const tick of landmarkTickers) tick(delta, landmarkElapsed);
+  // ---------- 推进一步 + 渲染循环 ----------
+  /**
+   * 推进一步：所有随时间变化的东西都在这里、按同一个 delta 推进（模拟时间 studio/clock.ts，不读真实时间、不用 Math.random）。
+   * 实时预览时 delta 是真实经过的时间；渲染成片时固定 1/fps 秒，结果与电脑快慢无关，可以逐帧复现。
+   */
+  let timeline: Timeline | null = null;
+  const step = (delta: number) => {
+    simTime.value += delta;
+    for (const tick of landmarkTickers) tick(delta, simTime.value);
     if (hdState.length) hdCheck();
-    simTime += delta;
-    metroSystem.update(simTime);
+    metroSystem.update(simTime.value);
+    // 镜头跟随时间线时，讲解的飞行和运镜让位给时间线
+    const timelineCamera = timeline?.links.camera ?? false;
+    if (timelineCamera) { tween = null; motion = null; }
     if (tween) {
       tween.t = Math.min(1, tween.t + delta / 1.4);
       const k = tween.t < 0.5 ? 4 * tween.t ** 3 : 1 - (-2 * tween.t + 2) ** 3 / 2;
@@ -1230,8 +1365,9 @@ const express = isGM
         if (u >= 1) motion = null;
       }
     }
-    controls.update();
-    clouds.update(delta);
+    if (!rendering && !timelineCamera) controls.update();
+    clouds.update(simTime.value);
+    weather.setAmounts(params.rainAmount, params.snowAmount, params.lightning);
     // 天气：先更新天气状态，再让 atmosphere 按它改配色
     const artOn = atmosphere.isArt();
     weather.update(delta, artOn, controls.target, camera.position, terrain.heightAt, nightUniform.value);
@@ -1266,9 +1402,12 @@ const express = isGM
     }
     updateContext(delta);
     stage.setNight(nightUniform.value);
-    const stageStrength = stage.update(delta, clock.elapsedTime);
+    const stageStrength = stage.update(delta, simTime.value);
     atmosphere.setDim(stageStrength); // 舞台光：压低环境光，主体靠聚光灯保持明亮
     const distance = camera.position.distanceTo(controls.target);
+    // 画面里的地名标签（会进成片）显示时，同类的网页标签隐去，不重复；讲解时仍用网页标签（站名点亮等效果在网页标签上）
+    const frameLabelsOn = params.showLabels && !storyActive;
+    frameLabels.update(camera, labelsOn && !quietLabels && !storyActive);
     for (const label of stationLabels) {
       const lines = (label.userData.lines as string[] | undefined) ?? [];
       const focusLine = lines.find((l) => stationFocus.has(l));
@@ -1283,13 +1422,16 @@ const express = isGM
         continue;
       }
       const lineShown = lines.length === 0 || lines.some((l) => visibleMetroLines.has(l));
-      label.visible = labelsOn && !label.userData.hidden && lineShown && distance < STATION_LABEL_DISTANCE;
+      label.visible = labelsOn && !frameLabelsOn && !label.userData.hidden && lineShown && distance < STATION_LABEL_DISTANCE;
     }
-    for (const label of waterLabels) label.visible = labelsOn && distance < WATER_LABEL_DISTANCE;
-    for (const label of poiLabels) label.visible = !quietLabels && labelsOn && (label.userData.planned ? layers.planned[0].visible : layers.landmarks[0].visible) && distance < WATER_LABEL_DISTANCE;
+    for (const label of waterLabels) label.visible = labelsOn && !frameLabelsOn && distance < WATER_LABEL_DISTANCE;
+    // 规划示意（planned）不在画面标签里，始终用网页标签
+    for (const label of poiLabels) label.visible = !quietLabels && labelsOn && (!frameLabelsOn || !!label.userData.planned) && (label.userData.planned ? layers.planned[0].visible : layers.landmarks[0].visible) && distance < WATER_LABEL_DISTANCE;
     // 讲地铁时隐藏片区名，避免压住站名
-    for (const label of landmarkLabels) label.visible = labelsOn && stationFocus.size === 0 && !quietLabels;
+    for (const label of landmarkLabels) label.visible = labelsOn && !frameLabelsOn && stationFocus.size === 0 && !quietLabels;
     atmosphere.followCamera(camera.position);
+    waterGpu.setParams(params.waterWave, params.waterReflection, params.waterDepth);
+    volumeFog.setParams(params.fogAmount, params.fogHeight, params.sunFog);
     waterGpu.update(controls.target);
     flood?.update();
     {
@@ -1298,10 +1440,22 @@ const express = isGM
         { dir: fogSunDir.copy(sun.position).sub(controls.target).normalize(), color: sun.color, up: fl.look.sunUp, glow: fl.look.glow, morning: fl.morning }, delta);
     }
     updateNightEffects();
-    for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength;
+    updateStudioLights();
+    for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength * params.landmarkGlow;
+  };
+  const clock = new THREE.Clock();
+  let frame = 0;
+  const liveFrame = () => {
+    const delta = Math.min(clock.getDelta(), 0.1);
+    if (timeline) {
+      // 镜头跟随时间线时鼠标不能转镜头（否则两边抢）；在画面上一拖就会切回手动（见下面的 takeOverCamera）
+      controls.enabled = !timeline.links.camera;
+      timeline.apply();
+    }
+    step(delta);
     pipeline.render();
     labelRenderer.render(scene, camera);
-    frame = requestAnimationFrame(render);
+    frame = requestAnimationFrame(liveFrame);
   };
   // 贴地雾、积雪注入到所有实体材质（水面不积雪、路面积雪少一些）
   weatherShadingUniforms.uGFBase.value = terrain.heightAt(center.x, center.z);
@@ -1316,18 +1470,138 @@ const express = isGM
     (Array.isArray(mat) ? mat : [mat]).forEach((x) => addWeatherShading(x, noSnow.has(x) ? 0 : lightSnow.has(x) ? 0.5 : 1));
   });
 
-  render();
+  // ---------- 做视频：画面模式与时刻的统一接口、时间线、渲染成片、面板（app/sandbox/studio/） ----------
+  const lookControl: LookControl = {
+    get: () => { const st = atmosphere.getState(); return { art: st.art, night: st.target === 1, hour: st.hour, playing: st.playing, moodChoice: st.moodChoice }; },
+    set: (st) => {
+      if (st.art !== undefined && st.art !== atmosphere.isArt()) atmosphere.setArt(st.art);
+      if (st.night !== undefined && st.night !== atmosphere.isNightTarget()) atmosphere.setNight(st.night);
+      if (st.hour !== undefined) atmosphere.setHour(st.hour);
+      if (st.playing !== undefined) atmosphere.setPlaying(st.playing);
+      if (st.moodChoice !== undefined) atmosphere.setMood(st.moodChoice);
+    },
+    getWeather: () => weather.getMode(),
+    setWeather: (kind) => weather.set(kind),
+  };
+  const paths = buildPaths(data, terrain);
+  timeline = await createTimeline({ camera, target: controls.target, look: lookControl, paths });
+  const tl = timeline;
+  /** 面板上手动改了时刻、天气、画面模式：跟随时间线时写进时间线（否则下一帧会被时间线的值盖掉） */
+  const lookChanged = <A extends unknown[]>(fn: (...args: A) => void) => (...args: A) => { fn(...args); tl.writeLook(); };
+
+  /** 记下 / 恢复整个画面的状态（模拟时间、随机数、参数、画面模式和时刻、天气状态机、图层、镜头） */
+  const layerKeys = Object.keys(layers) as LayerKey[];
+  type World = { look?: ReturnType<typeof atmosphere.getState>; weather?: ReturnType<typeof weather.snapshot>; layers?: Partial<Record<LayerKey, boolean>> };
+  const captureScene = (): SceneSnapshot => ({
+    simTime: simTime.value,
+    rng: getRngState(),
+    params: { ...params },
+    camera: { position: camera.position.toArray(), target: controls.target.toArray(), fov: camera.fov },
+    world: { look: atmosphere.getState(), weather: weather.snapshot(), layers: Object.fromEntries(layerKeys.map((k) => [k, layers[k][0].visible])) } satisfies World,
+  });
+  const restoreScene = (snap: SceneSnapshot) => {
+    simTime.value = snap.simTime;
+    setRngState(snap.rng);
+    assignParams({ ...defaultParams(), ...(snap.params ?? {}) }); // 旧任务文件里没有的参数按默认值
+    const w = snap.world as World;
+    if (w.look) atmosphere.setState(w.look);
+    if (w.weather) weather.restore(w.weather);
+    for (const k of layerKeys) if (w.layers?.[k] !== undefined) setLayer(k, w.layers[k]!);
+    tween = null;
+    motion = null;
+    camera.position.fromArray(snap.camera.position);
+    controls.target.fromArray(snap.camera.target);
+    camera.fov = snap.camera.fov;
+    camera.lookAt(controls.target);
+    camera.updateProjectionMatrix();
+  };
+  let editorWasOpen = false, effectsBefore = effectsOn;
+  const hooks: StudioHooks = {
+    captureScene,
+    restoreScene,
+    // 近景高精度模型是懒加载的：开始出帧前先按起始镜头加载完
+    settle: async () => {
+      hdCheck();
+      for (let pending = hdState.flatMap((h) => (h.loading ? [h.loading] : [])); pending.length; pending = hdState.flatMap((h) => (h.loading ? [h.loading] : []))) { await Promise.all(pending); hdCheck(); }
+    },
+    step,
+    pauseLive: () => {
+      rendering = true;
+      controls.enabled = false;
+      editorWasOpen = !tl.ui.isHidden;
+      tl.ui.hide();
+      cancelAnimationFrame(frame);
+      effectsBefore = effectsOn;
+      effectsOn = true; // 成片一律用精致画质
+      pickOutput();
+    },
+    resumeLive: () => {
+      rendering = false;
+      if (editorWasOpen) tl.ui.restore();
+      effectsOn = effectsBefore;
+      pickOutput();
+      resize();
+      clock.getDelta();
+      frame = requestAnimationFrame(liveFrame);
+    },
+    frames: createFrameRenderer(renderer, pipeline, camera),
+    timelineEvaluator: (content) => tl.evaluatorFor(content),
+    audioFile: () => view.audio,
+  };
+
+  // 面板：右侧「运镜与时间线」「渲染成片」、左侧「画面参数」
+  const districtName = isGM ? "光明" : (DISTRICT_NAMES[district] ?? district).replace(/新区$|区$/, "");
+  let removeOverlays = () => {};
+  let panelTimer = 0;
+  let timelinePanel: ReturnType<typeof bindTimelinePanel> | null = null;
+  if (studioHost) {
+    studioHost.id = "studio-host";
+    studioHost.innerHTML = STUDIO_PANEL_HTML;
+    removeOverlays = mountOverlays();
+    const paramsPanel = bindParamsPanel(createPresets(lookControl), (key, value) => tl.writeParam(key, value), setLut);
+    timelinePanel = bindTimelinePanel(tl, {
+      freeCamera: () => rigFromCamera(camera, controls.target),
+      setCamera: (rig: RigValues) => {
+        tween = null;
+        motion = null;
+        applyRig(camera, rig, { type: "none", start: 0, duration: 1, amount: 0, ease: "linear", path: "maozhou", height: 0, lookAhead: 0, offset: 0 }, 0, paths, controls.target);
+        controls.update();
+      },
+      relayout: resize,
+      hasPath: (key) => paths.get(key) !== null,
+    });
+    bindRenderPanel(hooks, { id: district, name: districtName }, tl);
+    panelTimer = window.setInterval(() => { paramsPanel.refresh(); timelinePanel?.refresh(); }, 500);
+  }
+
+  // 镜头跟随时间线时，在画面上拖动 / 滚轮 = 想手动调镜头：直接切回手动，并提示怎么交回时间线。
+  // 用捕获阶段监听，赶在鼠标控制（OrbitControls）之前打开它，这一次拖动就能生效
+  const takeOverCamera = () => {
+    if (rendering || !tl.links.camera) return;
+    tl.links.camera = false;
+    controls.enabled = true;
+    controls.update();
+    timelinePanel?.refresh();
+    const tip = "镜头已切回手动。调好后点「运镜与时间线 → 写入当前视角」，或打开「跟随时间线 · 镜头」交回时间线";
+    timelinePanel?.say(tip);
+    showToast(tip);
+  };
+  renderer.domElement.addEventListener("pointerdown", takeOverCamera, { capture: true });
+  renderer.domElement.addEventListener("wheel", takeOverCamera, { capture: true, passive: true });
+  if (process.env.NODE_ENV !== "production") (window as unknown as { __studio: unknown }).__studio = { params, timeline: tl, hooks, lookControl, simTime, setLut, frameLabels };
+
+  liveFrame();
 
   return {
     setLayer,
     setEffects,
-    setNight: atmosphere.setNight,
-    setArt: atmosphere.setArt,
-    setHour: atmosphere.setHour,
+    setNight: lookChanged(atmosphere.setNight),
+    setArt: lookChanged(atmosphere.setArt),
+    setHour: lookChanged(atmosphere.setHour),
     getHour: atmosphere.getHour,
     setPlaying: atmosphere.setPlaying,
-    setMood: atmosphere.setMood,
-    setWeather: (kind) => weather.set(kind),
+    setMood: lookChanged(atmosphere.setMood),
+    setWeather: lookChanged((kind: "auto" | WeatherKind) => weather.set(kind)),
     getWeather: () => ({ mode: weather.getMode(), name: weather.name() }),
     getMood: atmosphere.getMood,
     isArtNight: atmosphere.isArtNight,
@@ -1353,8 +1627,14 @@ const express = isGM
       ...metroSystem.stats,
     },
     landmarks: [...data.landmarks.map((landmark) => landmark.name), ...landmarks.placed.filter((item) => item.chip !== false).map((item) => item.name)],
+    getLook: () => ({ ...lookControl.get(), weather: { mode: weather.getMode(), name: weather.name() } }),
     dispose: () => {
       cancelAnimationFrame(frame);
+      window.clearInterval(panelTimer);
+      removeOverlays();
+      frameLabels.dispose();
+      renderer.domElement.removeEventListener("pointerdown", takeOverCamera, { capture: true });
+      renderer.domElement.removeEventListener("wheel", takeOverCamera, { capture: true });
       window.removeEventListener("resize", resize);
       controls.dispose();
       pipeline.dispose();

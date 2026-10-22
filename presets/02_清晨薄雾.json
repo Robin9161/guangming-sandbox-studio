@@ -1,0 +1,14 @@
+{
+  "name": "02_清晨薄雾",
+  "savedAt": "2026-10-21T12:00:00.000Z",
+  "params": {
+    "fogAmount": 0.45
+  },
+  "look": {
+    "art": true,
+    "night": false,
+    "hour": 6.3,
+    "moodChoice": 1
+  },
+  "weather": "fog"
+}

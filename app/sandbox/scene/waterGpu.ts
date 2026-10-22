@@ -1,5 +1,6 @@
 import * as THREE from "three/webgpu";
-import { attribute, cameraPosition, color, float, floor, fract, hash, length, max, mix, normalize, positionWorld, pow, reflector, smoothstep, step, texture, texture3D, time, uniform, vec2, vec3, vec4 } from "three/tsl";
+import { attribute, cameraPosition, color, float, floor, fract, hash, length, max, mix, normalize, positionWorld, pow, reflector, smoothstep, step, texture, texture3D, uniform, vec2, vec3, vec4 } from "three/tsl";
+import { simTime as time } from "../studio/clock";
 import { ImprovedNoise } from "three/examples/jsm/math/ImprovedNoise.js";
 import { nightUniform } from "./atmosphere";
 import { night as nightStyle } from "./palette";
@@ -87,7 +88,9 @@ export function upgradeWater(water: THREE.Group, data: SandboxData, bounds: { mi
   const waveB = texture3D(noise, vec3(wp.div(70.0).add(17.0), time.mul(0.035)).mod(1.0), 0).r.sub(0.5);
   const uWave = uniform(1);
   const uRain = uniform(0);
-  const waveOffset = vec2(waveA, waveB).mul(0.014).mul(uWave);
+  /** 参数（studio/params.ts）：水波、倒影、深浅对比的倍数 */
+  const uWaveK = uniform(1), uReflectK = uniform(1), uDepthK = uniform(1);
+  const waveOffset = vec2(waveA, waveB).mul(0.014).mul(uWave).mul(uWaveK);
   // 雨点涟漪：按 8 m 的格子，每格随机时刻冒出一圈扩散的波纹；雨越大，冒波纹的格子越多
   const cellP = wp.div(8.0), cellId = floor(cellP), cellF = fract(cellP);
   const seedA = hash(cellId.x.add(cellId.y.mul(157.0))), seedB = hash(cellId.x.mul(1.7).add(cellId.y.mul(91.0)).add(3.0));
@@ -109,12 +112,12 @@ export function upgradeWater(water: THREE.Group, data: SandboxData, bounds: { mi
   const rim = mix(shallow, color("#f4f1e6"), dayK.mul(0.45));
   const make = (tier: unknown, mirror: boolean) => {
     const t = tier as ReturnType<typeof vec4>;
-    const depth = smoothstep(0.5, 0.95, shore).mul(0.3).add(smoothstep(0.35, 0.95, center).mul(0.7)).mul(t.x);
+    const depth = smoothstep(0.5, 0.95, shore).mul(0.3).add(smoothstep(0.35, 0.95, center).mul(0.7)).mul(t.x).mul(uDepthK).min(1.0);
     const rimK = float(1).sub(smoothstep(0.45, 0.7, shore)).mul(t.w);
     // 雨天深浅差变小
     const body = mix(mix(shallow, mix(deep, shallow, uRain.mul(0.6)), depth), rim, rimK.mul(0.55));
     // 倒影强度打个折：日出日落、蓝调时天空很浓，满倒影会让水面发紫；保持马卡龙水色为主
-    const reflectK = fresnel.mul(t.y).mul(0.6);
+    const reflectK = fresnel.mul(t.y).mul(0.6).mul(uReflectK).min(1.0);
     const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.12, metalness: 0, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -12 });
     m.colorNode = body.mul(float(1).sub(reflectK));
     // 镜面倒影只给湖塘水库（同一张倒影只能给一组水面用）；河道只反射天边色
@@ -133,6 +136,7 @@ export function upgradeWater(water: THREE.Group, data: SandboxData, bounds: { mi
   return {
     reflection,
     materials,
+    setParams: (wave: number, reflect: number, depth: number) => { uWaveK.value = wave; uReflectK.value = reflect; uDepthK.value = depth; },
     /** 每帧：倒影平面取镜头焦点附近最大的那片水；天气改波纹和雨点 */
     update: (target: THREE.Vector3) => {
       let best = -1, bestY = reflection.target.position.y;

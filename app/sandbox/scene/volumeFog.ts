@@ -1,5 +1,6 @@
 import * as THREE from "three/webgpu";
-import { abs, clamp, exp, float, floor, Fn, fract, instancedArray, instanceIndex, int, max, mix, pass, screenCoordinate, select, smoothstep, texture, texture3D, time, uniform, vec2, vec3 } from "three/tsl";
+import { abs, clamp, exp, float, floor, Fn, fract, instancedArray, instanceIndex, int, max, mix, pass, screenCoordinate, select, smoothstep, texture, texture3D, uniform, vec2, vec3 } from "three/tsl";
+import { simTime as time } from "../studio/clock";
 import { ImprovedNoise } from "three/examples/jsm/math/ImprovedNoise.js";
 import { bayer16 } from "three/examples/jsm/tsl/math/Bayer.js";
 import { gaussianBlur } from "three/examples/jsm/tsl/display/GaussianBlurNode.js";
@@ -87,6 +88,8 @@ function buildFogMaps(terrain: Terrain, data: SandboxData) {
 
 export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneDepth: unknown, baseY: number, terrain: Terrain, data: SandboxData, renderer: THREE.WebGPURenderer) {
   const u = weatherShadingUniforms;
+  /** 参数（studio/params.ts）：浓度、雾层高度、太阳照雾的倍数 */
+  const uAmountK = uniform(1), uHeightK = uniform(1), uSunFogK = uniform(1);
   const center = uniform(new THREE.Vector2());
   const half = uniform(3000);
   const maps = buildFogMaps(terrain, data);
@@ -158,7 +161,7 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
     const uv = p.xz.sub(mapOffset).mul(mapScale);
     const ground = texture(maps.groundTex, uv).r;
     const source = fieldAt(p.xz); // 风吹过后的雾源（没风时就等于雾源图）
-    const layer = max(u.uGFHeight.mul(1.6), 90);
+    const layer = max(u.uGFHeight.mul(1.6).mul(uHeightK), 90);
     // 贴着本地地面的雾（沿山坡、河谷走）+ 沉在盆地底部的雾
     const above = max(p.y.sub(ground), 0);
     const hug = exp(above.div(layer).negate());
@@ -168,7 +171,7 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
     // 雾源越多，噪声里能"冒出雾"的部分越多：水边、谷底成团，城区只剩零星
     // 噪声对比度放低：是连续的一片薄雾里有浓淡，而不是一团团棉花中间夹着空洞
     const lumps = clamp(n1.mul(0.9).sub(float(0.42).sub(source.mul(0.18))).mul(n2.mul(0.6).add(0.7)), 0, 1).add(0.12);
-    return lumps.mul(max(hug, pool)).mul(source).mul(u.uGFAmount.mul(1.7)).mul(edge);
+    return lumps.mul(max(hug, pool)).mul(source).mul(u.uGFAmount.mul(1.7).mul(uAmountK)).mul(edge);
   };
 
   // ---- 第一层：雾有多浓（灰度），合成时统一上雾色，避免浓雾处发暗发脏 ----
@@ -194,7 +197,7 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
   sunMaterial.steps = 20;
   sunMaterial.offsetNode = bayer16(screenCoordinate);
   sunMaterial.depthNode = sceneDepth as never;
-  sunMaterial.scatteringNode = Fn(({ positionRay }: { positionRay: unknown }) => density(positionRay).mul(uSunFog).mul(0.12));
+  sunMaterial.scatteringNode = Fn(({ positionRay }: { positionRay: unknown }) => density(positionRay).mul(uSunFog).mul(uSunFogK).mul(0.12));
   const sunBox = new THREE.Mesh(box.geometry, sunMaterial);
   sunBox.layers.disableAll();
   sunBox.layers.enable(LAYER_SUNFOG);
@@ -234,6 +237,9 @@ export function createVolumeFog(scene: THREE.Scene, camera: THREE.Camera, sceneD
     setWind: (on: boolean) => { windTarget = on ? 1 : 0; },
     /** 讲解时强制起雾（0 = 不强制，按时间表和天气） */
     forceFog: (amount: number) => { forced = amount; uFill.value = amount > 0 ? 1 : 0; },
+    setParams: (amount: number, height: number, sunFog: number) => { uAmountK.value = amount; uHeightK.value = height; uSunFogK.value = sunFog; },
+    /** 聚光灯的光柱要在"太阳照雾"层里才看得见 */
+    sunFogLayer: LAYER_SUNFOG,
     debug: () => ({ forced, wind: uWind.value, amount: u.uGFAmount.value, height: u.uGFHeight.value, half: half.value }),
     /** 雾体跟着镜头焦点走；太阳照雾按当天配色（清晨、黄昏逆光最强，夜里没有） */
     update: (target: THREE.Vector3, cameraDistance: number, maxHalf: number, sun: { dir: THREE.Vector3; color: THREE.Color; up: number; glow: number; morning: number }, delta = 0.016) => {

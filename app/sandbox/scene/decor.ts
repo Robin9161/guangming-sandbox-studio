@@ -139,16 +139,18 @@ export function buildClouds(terrain: Terrain) {
     const cloud = new THREE.Mesh(mergeGeometries(puffs, false)!, material);
     cloud.scale.y = 0.75;
     cloud.position.set(minX + random() * (maxX - minX), 2600 + random() * 1400, minZ + random() * (maxZ - minZ));
+    cloud.userData.x0 = cloud.position.x;
     cloud.userData.speed = 25 + random() * 35;
     cloud.userData.size = n < BASE_CLOUDS ? 1 : 0.9 + random() * 0.5;
     if (n >= BASE_CLOUDS) { cloud.position.y -= 500; cloud.visible = false; }
     group.add(cloud);
   }
-  const span = maxX - minX;
-  const update = (delta: number) => {
+  const left = minX - 2500, wrap = maxX - minX + 5000;
+  /** time：模拟时间（秒）。位置只由时间决定（同一时刻云总在同一位置，成片可以逐帧复现），飘出东边后从西边回来 */
+  const update = (time: number) => {
     for (const cloud of group.children) {
-      cloud.position.x += (cloud.userData.speed as number) * delta;
-      if (cloud.position.x > maxX + 2500) cloud.position.x -= span + 5000;
+      const travelled = (cloud.userData.x0 as number) - left + (cloud.userData.speed as number) * time;
+      cloud.position.x = left + (((travelled % wrap) + wrap) % wrap);
     }
   };
   /** 云量 0–1（天气）：多出来的云逐朵长出来，常驻的云也变大一些 */

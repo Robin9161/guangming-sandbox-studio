@@ -159,7 +159,7 @@ export function buildSzWorldExhibition(ctx: Ctx): THREE.Group {
  roof(-242,244,848,902,(u,v)=>25+11*Math.exp(-((u/73)**2))-.03*(v-848),true);
  // 中央廊道原轮廓北端的小穹顶终点。
  roof(-24,24,-910,-902,()=>26,true);
- for(const [key,data] of Object.entries(faces))if(data.length)k.triangles(key as ColorKey,data);
+ for(const [key,data] of Object.entries(faces) as [string,number[]][])if(data.length)k.triangles(key as ColorKey,data);
  const group=k.finish();
  group.userData={district:"qianhai",hallCount:19,standardHalls:16,hallNumbers:hallSpecs.map(h=>h.id).sort((a,b)=>a-b),scale:SCALE,sourceBuildingIndex:evidence.sourceBuildingIndex};
  return group;

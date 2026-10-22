@@ -88,7 +88,7 @@ const NUM_KEYS = ["sunI", "hemiI", "grade", "sat", "haze", "night"] as const;
 type ColorKey = (typeof COLOR_KEYS)[number];
 type NumKey = (typeof NUM_KEYS)[number];
 const parsed = KEYS.map((k) => ({ h: k.h, c: Object.fromEntries(COLOR_KEYS.map((key) => [key, hex(k[key] ?? k.horizon)])) as Record<ColorKey, RGB>, n: Object.fromEntries(NUM_KEYS.map((key) => [key, k[key]])) as Record<NumKey, number> }));
-const parsedMoods = MOODS.map((m) => (m.colors ? Object.fromEntries(Object.entries(m.colors).map(([k, v]) => [k, hex(v!)])) as Partial<Record<ColorKey, RGB>> : null));
+const parsedMoods = MOODS.map((m) => (m.colors ? Object.fromEntries((Object.entries(m.colors) as [string, string][]).map(([k, v]) => [k, hex(v)])) as Partial<Record<ColorKey, RGB>> : null));
 
 export const SUNRISE = 6.0;
 export const SUNSET = 18.6;

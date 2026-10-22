@@ -1,0 +1,12 @@
+{
+  "name": "05_深夜雨",
+  "savedAt": "2026-10-21T12:00:00.000Z",
+  "params": {},
+  "look": {
+    "art": true,
+    "night": false,
+    "hour": 23,
+    "moodChoice": null
+  },
+  "weather": "rain"
+}

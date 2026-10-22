@@ -1,0 +1,66 @@
+/* 做视频用的工具界面：右侧面板里的「运镜与时间线」「渲染成片」、左侧「画面参数」、取景框、安全框、渲染进度、短提示。
+   右侧两组面板在页面的 .panel 里，配色跟着页面的变量（白天奶油白、夜里深蓝）；其余浮层固定用奶油白风格。 */
+
+#studio-host { display: grid; gap: 4px; margin-top: 14px; }
+#studio-host details { border-top: 1px solid var(--line, #e6e2d8); padding-top: 8px; }
+#studio-host summary { cursor: pointer; font-size: 13px; font-weight: 800; color: var(--ink, #3d4a5c); padding: 2px 0; }
+#studio-host details > .row, #studio-host details > label, #studio-host details > div { margin-top: 8px; }
+#studio-host .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+#studio-host .row b { width: 100%; font-size: 11px; color: var(--muted, #8a8f99); min-width: 0; overflow-wrap: anywhere; }
+#studio-host label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted, #5a6270); }
+#studio-host input[type=text], #studio-host input[type=number], #studio-host select { flex: 1; min-width: 0; border: 1px solid #d9d4c8; border-radius: 8px; padding: 4px 6px; font: inherit; font-size: 12px; background: #fff; color: #3d4a5c; }
+#studio-host button, #params-panel button, #tl-close, #render-overlay button { border: 0; padding: 6px 10px; border-radius: 999px; background: #eef2f6; color: #3c5a78; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+#studio-host button.on { background: #3d4a5c; color: #fff; }
+#studio-host button.primary { background: #d0694b; color: #fff; }
+#studio-host button:disabled { opacity: .45; cursor: default; }
+#studio-host .hint, #studio-host #render-msg { font-size: 11px; color: var(--muted, #8a8f99); white-space: pre-line; }
+#queue { display: grid; gap: 4px; font-size: 11px; color: #5a6270; }
+#queue div { display: flex; justify-content: space-between; gap: 6px; align-items: center; background: #f4f1ea; border-radius: 8px; padding: 4px 6px; }
+#queue div button { padding: 2px 7px; }
+
+/* 左侧「画面参数」面板：和右侧面板同一套奶油白风格，放在标题下面 */
+#params-panel { position: fixed; z-index: 20; left: 24px; top: 150px; width: 300px; max-height: calc(100vh - 200px); overflow-y: auto; padding: 12px; border-radius: 16px; background: rgba(255, 252, 245, 0.94); box-shadow: 0 8px 30px rgba(0,0,0,.18); box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+#params-panel.folded { width: auto; }
+#params-panel.folded .pp-body { display: none; }
+#params-panel .pp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#params-panel .pp-head b { font-size: 15px; color: #3d4a5c; }
+#params-panel .pp-fold { width: 26px; height: 26px; padding: 0; border-radius: 8px; font-size: 16px; line-height: 1; }
+#params-panel .pp-presets { display: grid; gap: 6px; margin: 10px 0 8px; padding-bottom: 10px; border-bottom: 1px solid #e6e2d8; }
+#params-panel .pp-label { font-size: 11px; color: #8a8f99; }
+#params-panel .pp-row { display: flex; gap: 6px; }
+#params-panel .pp-row button { flex: none; padding: 5px 10px; }
+#params-panel .pp-select { flex: 1; min-width: 0; border: 1px solid #d9d4c8; border-radius: 8px; padding: 4px; font: inherit; font-size: 12px; background: #fff; color: #3d4a5c; }
+#params-panel .pp-status { font-size: 11px; color: #8a8f99; min-height: 14px; }
+#params-panel .lil-gui.pp-root { width: 100% !important; }
+/* lil-gui 在每一层都重设配色变量，所以要对每一层都设置 */
+#params-panel .lil-gui { background: transparent;
+  --font-family: "PingFang SC", "Microsoft YaHei", sans-serif; --font-size: 12px; --input-font-size: 12px; --name-width: 46%; --widget-height: 22px; --padding: 4px; --spacing: 5px; --slider-input-width: 28%;
+  --background-color: transparent; --text-color: #3d4a5c; --title-background-color: #f1ece2; --title-text-color: #3d4a5c;
+  --widget-color: #e7ebf0; --hover-color: #dbe2ea; --focus-color: #d3dce6; --number-color: #c45f42; --string-color: #5a6b7d; }
+#params-panel .pp-root > .title { display: none; } /* 根标题和面板标题重复 */
+#params-panel .pp-root .lil-gui > .title { border-radius: 8px; margin-top: 6px; font-weight: 700; background: var(--title-background-color); border: 0 !important; }
+#params-panel .pp-root .controller.pp-changed { box-shadow: inset 3px 0 0 #d0694b; }
+#params-panel .pp-root .controller.pp-reset button { background: transparent; border-color: transparent; color: #8a8f99; font-weight: 400; }
+#params-panel .pp-root .controller.disabled { opacity: .45; }
+#params-panel .pp-root .lil-gui .lil-gui > .children { border-left: 0; margin-left: 0; }
+
+/* 取景框：框外压暗；安全框：动作安全 93%、字幕安全 90% */
+#frame-mask { position: fixed; pointer-events: none; z-index: 1; box-shadow: 0 0 0 100vmax rgba(8, 12, 28, 0.5); outline: 1px solid rgba(255, 250, 240, 0.7); display: none; }
+#safe-frame { position: fixed; pointer-events: none; display: none; z-index: 1; }
+#safe-frame div { position: absolute; border: 1px dashed rgba(255,255,255,.55); }
+#safe-frame .action { inset: 3.5%; }
+#safe-frame .title { inset: 5%; border-color: rgba(255,214,120,.7); }
+
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 40; max-width: min(560px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 12px; background: rgba(30, 38, 58, .88); color: #fffaf0; font-size: 13px; line-height: 1.5; pointer-events: none; opacity: 0; transition: opacity .25s; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+#toast.on { opacity: 1; }
+
+/* 时间线编辑器打开时：收起两侧面板，给编辑器让位 */
+#tl-close { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); display: none; z-index: 30; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+body.tl-open [data-studio-ui], body.tl-open #params-panel { display: none !important; }
+body.tl-open #tl-close { display: block; }
+
+/* 渲染成片时：只留画面和进度条 */
+#render-overlay { position: fixed; z-index: 40; left: 50%; bottom: 24px; transform: translateX(-50%); display: none; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 14px; background: rgba(0,0,0,.65); color: #fff; font-size: 13px; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+body.rendering #render-overlay { display: flex; }
+body.rendering [data-studio-ui], body.rendering #params-panel, body.rendering #frame-mask, body.rendering #safe-frame, body.rendering #tl-close { display: none !important; }
+body.rendering [data-sandbox-canvas] canvas { object-fit: contain; background: #000; }

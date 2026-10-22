@@ -1,0 +1,14 @@
+{
+  "name": "07_雾天",
+  "savedAt": "2026-10-21T12:00:00.000Z",
+  "params": {
+    "fogAmount": 1.6
+  },
+  "look": {
+    "art": true,
+    "night": false,
+    "hour": 9,
+    "moodChoice": null
+  },
+  "weather": "fog"
+}
