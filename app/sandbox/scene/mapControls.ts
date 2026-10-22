@@ -29,7 +29,7 @@ const MAX_AZIMUTH = 35 * DEG;
 const MIN_ELEVATION = 10 * DEG;
 const MAX_ELEVATION = 85 * DEG;
 /** 缩放、转向每秒追上的比例（越大越跟手） */
-const EASE_RATE = 16;
+const EASE_RATE = 22;
 /** 松手后惯性衰减的时间常数（秒）：短，停得快 */
 const INERTIA_TAU = 0.1;
 
@@ -332,15 +332,15 @@ export class MapControls extends THREE.EventDispatcher<{ start: object; change: 
     const dx = e.deltaX * scale, dy = e.deltaY * scale;
     if (e.ctrlKey) {
       // 触控板捏合（浏览器把它报成带 Ctrl 的滚轮）：连续、按比例缩放
-      this.zoomAt(p.x, p.y, dy * 0.012);
+      this.zoomAt(p.x, p.y, dy * 0.022);
       return;
     }
     const kind = this.wheelKind(e);
     if (kind === "mouse") {
-      // 鼠标滚轮：一格约缩放 13%，平滑过渡。格数优先按 wheelDeltaY（一格 120）算，各种鼠标手感一致；没有时按约 100 像素一格
+      // 鼠标滚轮：一格约缩放 22%，平滑过渡。格数优先按 wheelDeltaY（一格 120）算，各种鼠标手感一致；没有时按约 100 像素一格
       const legacy = (e as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY ?? 0;
       const ticks = legacy !== 0 && legacy % 120 === 0 ? Math.abs(legacy) / 120 : Math.min(Math.abs(dy), 300) / 100;
-      this.zoomAt(p.x, p.y, Math.sign(dy) * Math.min(ticks, 3) * 0.14);
+      this.zoomAt(p.x, p.y, Math.sign(dy) * Math.min(ticks, 3) * 0.25);
       return;
     }
     if (e.shiftKey || e.altKey) {
@@ -398,9 +398,9 @@ export class MapControls extends THREE.EventDispatcher<{ start: object; change: 
       ArrowRight: () => this.velocity.copy(right).multiplyScalar(step / INERTIA_TAU),
       ArrowUp: () => this.velocity.copy(forward).multiplyScalar(step / INERTIA_TAU),
       ArrowDown: () => this.velocity.copy(forward).multiplyScalar(-step / INERTIA_TAU),
-      "=": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(0.75); },
-      "+": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(0.75); },
-      "-": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(1 / 0.75); },
+      "=": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(0.6); },
+      "+": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(0.6); },
+      "-": () => { this.zoomAnchor.copy(this.target); this.zoomLeft += Math.log(1 / 0.6); },
       n: () => { this.azimuthLeft = -az; },
       N: () => { this.azimuthLeft = -az; },
     };

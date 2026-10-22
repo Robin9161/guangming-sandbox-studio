@@ -543,6 +543,7 @@ const express = isGM
   const spotLight = new THREE.SpotLight("#ffe6c4", 0, 0, Math.PI / 12, 0.6, 0);
   spotLight.layers.enable(volumeFog.sunFogLayer);
   scene.add(fillLight, fillLight.target, rimLight, rimLight.target, spotLight, spotLight.target);
+  fillLight.visible = rimLight.visible = spotLight.visible = false; // 默认关：第一次编译着色器时就不带这三盏灯
   const WHITE = new THREE.Color(1, 1, 1), SPOT_COOL = new THREE.Color("#a8c8ff"), SPOT_WARM = new THREE.Color("#ffd28f");
   const lightDir = new THREE.Vector3();
   const updateStudioLights = () => {
@@ -553,7 +554,10 @@ const express = isGM
     if (lightDir.lengthSq() < 1e-6) lightDir.set(1, 0, 0);
     lightDir.normalize().setY(0.58).normalize();
     fillLight.color.copy(hemi.color);
+    // 强度为 0 的灯不参与渲染：常驻的灯即使是 0，每个材质每个像素也要多算一盏（实测全屏掉帧约三成）。
+    // 代价是打开或关闭时所有材质要重新编译一次着色器，会卡一两秒
     fillLight.intensity = params.fillLight;
+    fillLight.visible = params.fillLight > 0;
     fillLight.target.position.copy(focus);
     fillLight.position.copy(focus).addScaledVector(lightDir, 10000);
     // 轮廓光：从焦点背后（相对镜头）、25° 高打向镜头，颜色取阳光色
@@ -562,10 +566,12 @@ const express = isGM
     lightDir.normalize().setY(0.47).normalize();
     rimLight.color.copy(sun.color).lerp(WHITE, 0.3);
     rimLight.intensity = params.rimLight;
+    rimLight.visible = params.rimLight > 0;
     rimLight.target.position.copy(focus);
     rimLight.position.copy(focus).addScaledVector(lightDir, 10000);
     // 聚光灯：参数 10 ≈ 正午阳光的强度
     spotLight.intensity = params.spotIntensity * 0.35;
+    spotLight.visible = params.spotIntensity > 0;
     spotLight.angle = Math.min(1.2, Math.atan(params.spotRadius / params.spotHeight));
     spotLight.color.copy(SPOT_COOL).lerp(SPOT_WARM, (params.spotWarmth + 1) / 2);
     spotLight.target.position.copy(focus);
@@ -1440,10 +1446,13 @@ const express = isGM
     }
     updateNightEffects();
     updateStudioLights();
+    if (rendering) sun.shadow.needsUpdate = true; // 成片每帧（每次子采样）都重画阴影
     for (const { material, strength } of landmarkGlows) material.emissiveIntensity = THREE.MathUtils.smoothstep(nightUniform.value, 0.15, 0.6) * strength * params.landmarkGlow;
   };
   const clock = new THREE.Clock();
   let frame = 0;
+  let shadowFrame = 2;
+  sun.shadow.autoUpdate = false;
   const liveFrame = () => {
     const delta = Math.min(clock.getDelta(), 0.1);
     if (timeline) {
@@ -1452,6 +1461,10 @@ const express = isGM
       timeline.apply();
     }
     step(delta);
+    // 实时预览时太阳阴影每 3 帧重画一次：阴影要把整个场景（约 280 万个三角形）再画一遍，而太阳和云走得很慢，看不出区别。
+    // 渲染成片不走这里，每帧都重画（见 step）
+    shadowFrame = (shadowFrame + 1) % 3;
+    if (shadowFrame === 0) sun.shadow.needsUpdate = true;
     pipeline.render();
     labelRenderer.render(scene, camera);
     frame = requestAnimationFrame(liveFrame);
