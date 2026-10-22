@@ -43,6 +43,9 @@ export type TimelineLinks = { camera: boolean; look: boolean; params: boolean };
 const num = (def: number, label: string, range: [number, number], nudge = 1) => types.number(def, { label, range, nudgeMultiplier: nudge });
 const pick = (def: string, options: Record<string, string>, label: string) => types.stringLiteral(def, options, { label, as: "menu" });
 
+/** 改代码热更新时场景会重建、再定义一次这些对象（默认值跟着镜头变）：允许覆盖，否则 Theatre 会报错 */
+const RECONFIGURE = { reconfigure: true } as const;
+
 /** 时间线上的四个对象（属性的名字、范围、默认值） */
 function defineObjects(sheet: ISheet, rig: RigValues) {
   const rigObj = sheet.object("镜头装置", {
@@ -53,7 +56,7 @@ function defineObjects(sheet: ISheet, rig: RigValues) {
     azimuth: num(rig.azimuth, "方位°", [-720, 720], 1),
     elevation: num(rig.elevation, "俯角°", [1, 89.9], 0.5),
     fov: num(rig.fov, "视角°", [8, 90], 0.5),
-  });
+  }, RECONFIGURE);
   const moveObj = sheet.object("运镜模板", {
     type: pick("none", MOVE_TYPES, "运动"),
     start: num(0, "开始 秒", [0, 600], 0.1),
@@ -64,7 +67,7 @@ function defineObjects(sheet: ISheet, rig: RigValues) {
     height: num(450, "路径 高度 m", [20, 5000], 5),
     lookAhead: num(900, "路径 前看 m", [50, 6000], 10),
     offset: num(0, "路径 偏右 m", [-3000, 3000], 5),
-  });
+  }, RECONFIGURE);
   const moodOptions = Object.fromEntries([["auto", "每天随机"], ...MOODS.map((m, i) => [String(i), m.name])]) as Record<string, string>;
   const weatherOptions = { auto: "自动", ...WEATHER_NAMES } as Record<"auto" | WeatherKind, string>;
   const lookObj = sheet.object("时刻与天气", {
@@ -72,12 +75,12 @@ function defineObjects(sheet: ISheet, rig: RigValues) {
     hour: num(17.4, "时刻", [0, 24], 0.05),
     mood: pick("auto", moodOptions, "日出日落氛围"),
     weather: pick("clear", weatherOptions, "天气"),
-  });
+  }, RECONFIGURE);
   const paramProps = Object.fromEntries((Object.entries(PARAMS) as [ParamKey, ParamDef][]).map(([key, d]) => [
     key,
     d.kind === "number" ? types.number(d.default, { label: d.label, range: [d.min, d.max], nudgeMultiplier: d.step }) : types.boolean(d.default, { label: d.label }),
   ]));
-  const paramsObj = sheet.object("画面参数", paramProps);
+  const paramsObj = sheet.object("画面参数", paramProps, RECONFIGURE);
   return { rigObj, moveObj, lookObj, paramsObj };
 }
 type Objects = ReturnType<typeof defineObjects>;

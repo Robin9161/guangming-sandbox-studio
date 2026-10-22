@@ -5,7 +5,6 @@ import { dof } from "three/examples/jsm/tsl/display/DepthOfFieldNode.js";
 import { lut3D } from "three/examples/jsm/tsl/display/Lut3DNode.js";
 import { bloom as bloomNode } from "three/examples/jsm/tsl/display/BloomNode.js";
 import { gaussianBlur } from "three/examples/jsm/tsl/display/GaussianBlurNode.js";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { createAtmosphere, createGrade, glowColor, glowFromVertexColor } from "./atmosphere";
 import { createVolumeFog } from "./volumeFog";
@@ -31,6 +30,7 @@ import { createAlluvialPlainAnim, createFarmAnim, createFloodAnim, createMigrati
 import { createStageLight } from "./stageLight";
 import { nightUniform } from "./atmosphere";
 import { buildMetro } from "./metro";
+import { MapControls } from "./mapControls";
 import { exaggerate, night, water as waterStyle } from "./palette";
 import { buildTerrain } from "./terrain";
 import { buildCityLight, cityLightUniforms, litByStreetLamps } from "./nightLight";
@@ -365,13 +365,12 @@ const express = isGM
 
   // ---------- 相机与控制 ----------
   const camera = new THREE.PerspectiveCamera(30, 1, 20, 200000);
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
+  // 地图式镜头控制（左键 / 双指滑动平移、滚轮 / 捏合朝鼠标缩放、右键或 Shift 转向，北在上 ±35°），见 mapControls.ts
+  const controls = new MapControls(camera, renderer.domElement);
   controls.minDistance = 500;
   controls.maxDistance = 90000;
-  controls.maxPolarAngle = 1.41; // 允许压到约 10° 的低机位（天际线视角）
-  controls.screenSpacePanning = false;
+  // 焦点最远拖到区界外 25 km（还能看到周边，不会拖丢）
+  controls.limits = { minX: minX - 25000, maxX: maxX + 25000, minZ: minZ - 25000, maxZ: maxZ + 25000 };
 
   const viewPose = (target: THREE.Vector3, distance: number, elevationDeg: number, azimuthDeg: number) => {
     const el = THREE.MathUtils.degToRad(elevationDeg);

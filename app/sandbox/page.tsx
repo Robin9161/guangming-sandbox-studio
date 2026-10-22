@@ -393,7 +393,7 @@ export default function SandboxPage() {
         </section>
       )}
 
-      <div className={styles.tip} data-studio-ui>拖动旋转 · 滚轮缩放 · 右键平移 · 点击片区名飞入</div>
+      <div className={styles.tip} data-studio-ui>拖动平移 · 滚轮或双指捏合缩放 · 右键或 Shift+拖动转向 · 双击飞近 · N 回到北在上</div>
     </main>
   );
 }
